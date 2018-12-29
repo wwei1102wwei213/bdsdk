@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ai</string>
+    <string name="ai_provider_authorities">com.wei.ai.fileprovider</string>
+</resources>
