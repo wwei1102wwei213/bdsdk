@@ -3,41 +3,16 @@
  */
 package com.baidu.aip.ui;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.concurrent.Executors;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.baidu.aip.library.R;
-import com.baidu.aip.manager.FaceSDKManager;
-import com.baidu.aip.utils.FileUitls;
-import com.baidu.aip.utils.NetRequest;
-import com.baidu.aip.utils.PreferencesUtil;
-import com.baidu.aip.utils.ZipUtil;
-import com.baidu.idl.facesdk.FaceSDK;
-import com.baidu.idl.license.AndroidLicenser;
-
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-
 import android.support.v4.app.ActivityCompat;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -53,6 +28,28 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.baidu.aip.library.R;
+import com.baidu.aip.manager.FaceSDKManager;
+import com.baidu.aip.utils.FileUitls;
+import com.baidu.aip.utils.NetRequest;
+import com.baidu.aip.utils.PreferencesUtil;
+import com.baidu.aip.utils.ZipUtil;
+import com.baidu.idl.facesdk.FaceSDK;
+import com.baidu.idl.license.AndroidLicenser;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
 public class Activation {
 
@@ -133,7 +130,8 @@ public class Activation {
 
         keyEt = new EditText(context);
         keyEt.setHint("输入序列号");
-        keyEt.setText(PreferencesUtil.getString("activate_key", "VURC-QVIN-J5HZ-A7XS"));
+//        keyEt.setText(PreferencesUtil.getString("activate_key", "VURC-QVIN-J5HZ-A7XS"));
+        keyEt.setText(PreferencesUtil.getString("activate_key", "UEZK-JODI-F81T-5GKO"));
 //         keyEt.setText("VMVY-PLkd-OsJN-veIc");
 
         LinearLayout.LayoutParams keyParams = new LinearLayout.LayoutParams(

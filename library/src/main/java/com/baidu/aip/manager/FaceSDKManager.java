@@ -1,13 +1,8 @@
 package com.baidu.aip.manager;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.FloatRange;
-import android.support.annotation.IntRange;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -15,9 +10,11 @@ import android.widget.Toast;
 import com.baidu.aip.ui.Activation;
 import com.baidu.aip.utils.FileUitls;
 import com.baidu.aip.utils.PreferencesUtil;
-import com.baidu.idl.facesdk.FaceConfig;
 import com.baidu.idl.facesdk.FaceSDK;
 import com.baidu.idl.license.AndroidLicenser;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FaceSDKManager {
 
@@ -72,37 +69,48 @@ public class FaceSDKManager {
      */
     public void init(final Context context) {
         this.context = context;
-        if (!check()) {
-            initStatus = SDK_UNACTIVATION;
-            return;
-        }
-        PreferencesUtil.initPrefs(context.getApplicationContext());
-        // final String key = "faceexample-face-android";
-        final String key = PreferencesUtil.getString("activate_key", "VURC-QVIN-J5HZ-A7XS");
-        if (TextUtils.isEmpty(key)) {
-            Toast.makeText(context, "激活序列号为空, 请先激活", Toast.LENGTH_SHORT).show();
-            return;
+        try {
+            if (!check()) {
+                initStatus = SDK_UNACTIVATION;
+                return;
+            }
+            PreferencesUtil.initPrefs(context.getApplicationContext());
+            // final String key = "faceexample-face-android";
+            final String key = PreferencesUtil.getString("activate_key", "");
+            if (TextUtils.isEmpty(key)) {
+                Toast.makeText(context, "激活序列号为空, 请先激活", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            initStatus = SDK_INITING;
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            es.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (sdkInitListener != null) {
+                            sdkInitListener.initStart();
+                        }
+                        Log.e("FaceSDK", "初始化授权");
+                        FaceSDK.initLicense(context, key, LICENSE_NAME, false);
+                        if (!sdkInitStatus()) {
+                            return;
+                        }
+                        Log.e("FaceSDK", "初始化sdk");
+                        faceDetector.init(context);
+                        faceFeature.init(context);
+                        initLiveness(context);
+                    } catch (Exception e){
+
+                    }
+
+                }
+            });
+        } catch (Exception e){
+            e.printStackTrace();
+            showToast(e.getMessage());
         }
 
-        initStatus = SDK_INITING;
-        ExecutorService es = Executors.newSingleThreadExecutor();
-        es.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (sdkInitListener != null) {
-                    sdkInitListener.initStart();
-                }
-                Log.e("FaceSDK", "初始化授权");
-                FaceSDK.initLicense(context, key, LICENSE_NAME, false);
-                if (!sdkInitStatus()) {
-                    return;
-                }
-                Log.e("FaceSDK", "初始化sdk");
-                faceDetector.init(context);
-                faceFeature.init(context);
-                initLiveness(context);
-            }
-        });
     }
 
     /**
@@ -118,33 +126,39 @@ public class FaceSDKManager {
 
     private boolean sdkInitStatus() {
         boolean success = false;
-        int status = FaceSDK.getAuthorityStatus();
-        if (status == AndroidLicenser.ErrorCode.SUCCESS.ordinal()) {
-            initStatus = SDK_INITED;
-            success = true;
-            faceDetector.setInitStatus(initStatus);
-            Log.e("FaceSDK", "授权成功");
-            if (sdkInitListener != null) {
-                sdkInitListener.initSuccess();
-            }
+        try {
+            int status = FaceSDK.getAuthorityStatus();
+            if (status == AndroidLicenser.ErrorCode.SUCCESS.ordinal()) {
+                initStatus = SDK_INITED;
+                success = true;
+                faceDetector.setInitStatus(initStatus);
+                Log.e("FaceSDK", "授权成功");
+                if (sdkInitListener != null) {
+                    sdkInitListener.initSuccess();
+                }
 
-        } else if (status == AndroidLicenser.ErrorCode.LICENSE_EXPIRED.ordinal()) {
-            initStatus = SDK_FAIL;
-            // FileUitls.deleteLicense(context, LICENSE_NAME);
-            Log.e("FaceSDK", "授权过期");
-            if (sdkInitListener != null) {
-                sdkInitListener.initFail(status, "授权过期");
+            } else if (status == AndroidLicenser.ErrorCode.LICENSE_EXPIRED.ordinal()) {
+                initStatus = SDK_FAIL;
+                // FileUitls.deleteLicense(context, LICENSE_NAME);
+                Log.e("FaceSDK", "授权过期");
+                if (sdkInitListener != null) {
+                    sdkInitListener.initFail(status, "授权过期");
+                }
+                showActivation();
+            } else {
+                initStatus = SDK_FAIL;
+                // FileUitls.deleteLicense(context, LICENSE_NAME);
+                Log.e("FaceSDK", "授权失败" + status);
+                if (sdkInitListener != null) {
+                    sdkInitListener.initFail(status, "授权失败");
+                }
+                showActivation();
             }
-            showActivation();
-        } else {
-            initStatus = SDK_FAIL;
-            // FileUitls.deleteLicense(context, LICENSE_NAME);
-            Log.e("FaceSDK", "授权失败" + status);
-            if (sdkInitListener != null) {
-                sdkInitListener.initFail(status, "授权失败");
-            }
-            showActivation();
+        } catch (Exception e){
+            e.printStackTrace();
+            showToast(e.getMessage());
         }
+
         return success;
     }
 
@@ -159,26 +173,37 @@ public class FaceSDKManager {
     }
 
     public void showActivation() {
-        if (FaceSDK.getAuthorityStatus() == AndroidLicenser.ErrorCode.SUCCESS.ordinal()) {
-            Toast.makeText(context, "已经激活成功", Toast.LENGTH_LONG).show();
-            // return;
+        try {
+            if (FaceSDK.getAuthorityStatus() == AndroidLicenser.ErrorCode.SUCCESS.ordinal()) {
+                Toast.makeText(context, "已经激活成功", Toast.LENGTH_LONG).show();
+                // return;
+            }
+            final Activation activation = new Activation(context);
+            activation.setActivationCallback(new Activation.ActivationCallback() {
+                @Override
+                public void callback(boolean success) {
+                    initStatus = SDK_UNINIT;
+                    Log.i("wtf", "activation callback");
+                    init(context);
+                }
+            });
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    activation.show();
+                }
+            });
+        } catch (Exception e){
+            e.printStackTrace();
+            showToast(e.getMessage());
         }
-        final Activation activation = new Activation(context);
-        activation.setActivationCallback(new Activation.ActivationCallback() {
-            @Override
-            public void callback(boolean success) {
-                initStatus = SDK_UNINIT;
-                Log.i("wtf", "activation callback");
-                init(context);
-            }
-        });
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                activation.show();
-            }
-        });
 
+
+    }
+
+    private void showToast(String msg) {
+        if (msg==null) return;
+        Toast.makeText(context.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
 
 

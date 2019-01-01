@@ -8,7 +8,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -25,16 +24,14 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,17 +48,16 @@ import com.baidu.aip.face.TexturePreviewView;
 import com.baidu.aip.face.camera.CameraView;
 import com.baidu.aip.face.camera.ICameraControl;
 import com.baidu.aip.manager.FaceDetector;
-import com.baidu.aip.manager.FaceLiveness;
 import com.baidu.aip.manager.FaceSDKManager;
 import com.baidu.aip.utils.FeatureUtils;
-import com.baidu.aip.utils.FileUitls;
 import com.baidu.aip.utils.ImageUtils;
 import com.baidu.aip.utils.PreferencesUtil;
 import com.baidu.idl.facesdk.FaceInfo;
-import com.baidu.idl.facesdk.FaceSDK;
 import com.baidu.idl.facesdk.FaceTracker;
-import com.baidu.idl.license.AndroidLicenser;
+import com.huashi.otg.sdk.HSIDCardInfo;
+import com.huashi.otg.sdk.HandlerMsg;
 import com.huashi.otg.sdk.HsOtgApi;
+import com.huashi.otg.sdk.Test;
 import com.wei.ai.utils.GlobalFaceTypeModel;
 import com.wei.ai.utils.WLibPermissionsBiz;
 
@@ -74,6 +70,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -102,42 +99,47 @@ public class MainActivity extends Activity implements View.OnClickListener {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wltlib";// 授权目录
-        mHandler = new MyHandler(this);
-        uri = Uri.parse("content://com.miui.gallery.open/raw/%2Fstorage%2Femulated%2F0%2FDCIM%2FCamera%2FIMG_20181021_171721.jpg");
-        faceDetectManager = new FaceDetectManager(getApplicationContext());
-        initViews();
+        try {
+            filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wltlib";// 授权目录
 
+
+            mHandler = new MyHandler(this);
+//        uri = Uri.parse("content://com.miui.gallery.open/raw/%2Fstorage%2Femulated%2F0%2FDCIM%2FCamera%2FIMG_20181021_171721.jpg");
+            faceDetectManager = new FaceDetectManager(getApplicationContext());
+            m_Auto = true;
+            initViews();
+        } catch (Exception e){
+            showToast(e.getMessage());
+        }
         initPermissions();
     }
 
-    private TextView tv_status;
+    private TextView tv_status, tv_info;
     private TexturePreviewView previewView;
     private TextureView textureView;
     private TextView tipTv, matchScoreTv;
-    private ImageView iv;
+    private ImageView iv, iv_photo;
     private View btn;
     private void initViews() {
-        tv_status = findViewById(R.id.tv_status);
-        previewView = findViewById(R.id.preview_view);
-        textureView = findViewById(R.id.texture_view);
-        tipTv =  findViewById(R.id.tip);
-        matchScoreTv = (TextView) findViewById(R.id.match_score_tv);
-        iv = findViewById(R.id.pick_from_album_iv);
-        /*try {
-            final Bitmap bitmap = BitmapFactory.decodeStream(
-                    getContentResolver().openInputStream(uri));
-            iv.setImageBitmap(bitmap);
-            Log.e("MERROR", "setImageBitmap");
+        try {
+            tv_status = findViewById(R.id.tv_status);
+            previewView = findViewById(R.id.preview_view);
+            textureView = findViewById(R.id.texture_view);
+            tipTv =  findViewById(R.id.tip);
+            matchScoreTv = (TextView) findViewById(R.id.match_score_tv);
+            iv = findViewById(R.id.pick_from_album_iv);
+            btn = findViewById(R.id.btn);
+            tv_info = findViewById(R.id.tv_info);
+            iv_photo = findViewById(R.id.iv_photo);
         } catch (Exception e){
-            Log.e("MERROR", e.getMessage());
-        }*/
-        btn = findViewById(R.id.btn);
+            showToast(e.getMessage());
+        }
+
     }
 
     int count = 0;
     private void initListener() {
-        btn.setOnClickListener(new View.OnClickListener() {
+        /*btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 faceDetectManager.setUseDetect(false);
@@ -145,7 +147,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, PICK_PHOTO);
             }
-        });
+        });*/
         // 设置回调，回调人脸检测结果。
         faceDetectManager.setOnFaceDetectListener(new FaceDetectManager.OnFaceDetectListener() {
             @Override
@@ -175,6 +177,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     @Override
                     public void RequestComplete(boolean isOk) {
                         if (isOk) {
+
                             init();
                         }
                     }
@@ -184,14 +187,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private ProgressDialog dialog;
     private void init() {
-        dialog = new ProgressDialog(this);
-        dialog.setCancelable(false);
-        dialog.setMessage("正在初始化设备");
-        dialog.show();
-        PreferencesUtil.initPrefs(this);
-        // 使用人脸1：n时使用
-        DBManager.getInstance().init(this);
-        livnessTypeTip();
+        try {
+            dialog = new ProgressDialog(this);
+            dialog.setCancelable(false);
+            dialog.setMessage("正在初始化设备");
+            dialog.show();
+            PreferencesUtil.initPrefs(this);
+            // 使用人脸1：n时使用
+            DBManager.getInstance().init(this);
+            livnessTypeTip();
 //        FaceEnvironment faceEnvironment = new FaceEnvironment();
 //        // 模糊度范围 (0-1) 推荐小于0.7
 //        faceEnvironment.setBlurrinessThreshold(FaceEnvironment.VALUE_BLURNESS);
@@ -210,62 +214,86 @@ public class MainActivity extends Activity implements View.OnClickListener {
 //        // 是否进行质量检测,开启会降低性能
 //        faceEnvironment.setCheckQuality(false);
 //        FaceSDKManager.getInstance().getFaceDetector().setFaceEnvironment(faceEnvironment);
-        FaceSDKManager.getInstance().init(this);
-        FaceSDKManager.getInstance().setSdkInitListener(new FaceSDKManager.SdkInitListener() {
-            @Override
-            public void initStart() {
+            FaceSDKManager.getInstance().init(this);
+            FaceSDKManager.getInstance().setSdkInitListener(new FaceSDKManager.SdkInitListener() {
+                @Override
+                public void initStart() {
 //                toast("sdk init start");
-            }
+                }
 
-            @Override
-            public void initSuccess() {
-                dialog.dismiss();
-                toast("初始化成功");
-            }
+                @Override
+                public void initSuccess() {
+                    dialog.dismiss();
+                    toast("初始化成功");
 
-            @Override
-            public void initFail(int errorCode, String msg) {
-                dialog.dismiss();
-                toast("初始化失败:" + msg);
-            }
-        });
+                }
 
-        copy(MainActivity.this, "base.dat", "base.dat", filepath);
-        copy(MainActivity.this, "license.lic", "license.lic", filepath);
-        api = new HsOtgApi(mHandler, MainActivity.this);
-        int ret = api.init();// 因为第一次需要点击授权，所以第一次点击时候的返回是-1所以我利用了广播接受到授权后用handler发送消息
-        if (ret == 1) {
-            tv_status.setText("连接成功");
-//            sam.setText(api.GetSAMID());
-        } else {
-            tv_status.setText("连接失败");
-            initCamera();
+                @Override
+                public void initFail(int errorCode, String msg) {
+                    dialog.dismiss();
+                    toast("初始化失败:" + msg);
+                }
+            });
+
+//            m_Auto = true;
+//            new Thread(new CPUThread()).start();
+
+
+        } catch (Exception e){
+            e.printStackTrace();
+            showToast(e.getMessage());
+        }
+        try {
+            copy(MainActivity.this, "base.dat", "base.dat", filepath);
+            copy(MainActivity.this, "license.lic", "license.lic", filepath);
+            api = new HsOtgApi(h, MainActivity.this);
+            int ret = api.init();// 因为第一次需要点击授权，所以第一次点击时候的返回是-1所以我利用了广播接受到授权后用handler发送消息
+            if (ret == 1) {
+                tv_status.setText("连接成功");
+
+
+            } else {
+                tv_status.setText("连接失败");
+
+            }
+        } catch (Exception e){
+            Log.e("HsOtgApi", e.getMessage());
+            e.printStackTrace();
         }
 
+        try {
+            initCamera();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+//            sam.setText(api.GetSAMID());
     }
 
     // 用于检测人脸。
     private FaceDetectManager faceDetectManager;
     private void initCamera() {
+        try {
+            // 从系统相机获取图片帧。
+            final CameraImageSource cameraImageSource = new CameraImageSource(this);
+            // 图片越小检测速度越快，闸机场景640 * 480 可以满足需求。实际预览值可能和该值不同。和相机所支持的预览尺寸有关。
+            // 可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
+            cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 480), dip2px(this, 640));
 
-        // 从系统相机获取图片帧。
-        final CameraImageSource cameraImageSource = new CameraImageSource(this);
-        // 图片越小检测速度越快，闸机场景640 * 480 可以满足需求。实际预览值可能和该值不同。和相机所支持的预览尺寸有关。
-        // 可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
-        cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 300), dip2px(this, 400));
+            // 设置最小人脸，该值越小，检测距离越远，该值越大，检测性能越好。范围为80-200
+            FaceSDKManager.getInstance().getFaceDetector().setMinFaceSize(120);
+            // 设置预览
+            cameraImageSource.setPreviewView(previewView);
+            // 设置图片源
+            faceDetectManager.setImageSource(cameraImageSource);
 
-        // 设置最小人脸，该值越小，检测距离越远，该值越大，检测性能越好。范围为80-200
-        FaceSDKManager.getInstance().getFaceDetector().setMinFaceSize(120);
-        // 设置预览
-        cameraImageSource.setPreviewView(previewView);
-        // 设置图片源
-        faceDetectManager.setImageSource(cameraImageSource);
-
-        textureView.setOpaque(false);
-        // 不需要屏幕自动变黑。
-        textureView.setKeepScreenOn(true);
-        boolean isPortrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
-        if (isPortrait) {
+            textureView.setOpaque(false);
+            // 不需要屏幕自动变黑。
+            textureView.setKeepScreenOn(true);
+            boolean isPortrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+            previewView.setScaleType(PreviewView.ScaleType.FIT_WIDTH);
+            // 相机坚屏模式
+            cameraImageSource.getCameraControl().setDisplayOrientation(CameraView.ORIENTATION_PORTRAIT);
+        /*if (isPortrait) {
             previewView.setScaleType(PreviewView.ScaleType.FIT_WIDTH);
             // 相机坚屏模式
             cameraImageSource.getCameraControl().setDisplayOrientation(CameraView.ORIENTATION_PORTRAIT);
@@ -273,12 +301,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
             previewView.setScaleType(PreviewView.ScaleType.FIT_HEIGHT);
             // 相机横屏模式
             cameraImageSource.getCameraControl().setDisplayOrientation(CameraView.ORIENTATION_HORIZONTAL);
+        }*/
+
+            setCameraType(cameraImageSource);
+
+            initListener();
+
+            m_Auto = true;
+            new Thread(new CPUThread()).start();
+
+        } catch (Exception e){
+            showToast("initCamera=====>"+e.getMessage());
         }
 
-        setCameraType(cameraImageSource);
-
-        initListener();
-        Log.e("MERROR", "initCrema");
 
     }
 
@@ -288,17 +323,22 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void setCameraType(CameraImageSource cameraImageSource) {
-        // TODO 选择使用前置摄像头
-        cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_FACING_FRONT);
-        previewView.getTextureView().setScaleX(-1);
-        // TODO 选择使用usb摄像头
+        try {
+            // TODO 选择使用前置摄像头
+//        cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_FACING_FRONT);
+//        previewView.getTextureView().setScaleX(-1);
+            // TODO 选择使用usb摄像头
 //        cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_USB);
 //        // 如果不设置，人脸框会镜像，显示不准
 //        previewView.getTextureView().setScaleX(-1);
 
-        // TODO 选择使用后置摄像头
-//        cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_FACING_BACK);
-//        previewView.getTextureView().setScaleX(-1);
+            // TODO 选择使用后置摄像头
+            cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_FACING_BACK);
+            previewView.getTextureView().setScaleX(-1);
+
+        } catch (Exception e){
+            showToast(e.getMessage());
+        }
     }
 
 
@@ -515,45 +555,50 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private String filter(FaceInfo faceInfo, ImageFrame imageFrame) {
-
         String tip = "";
-        if (faceInfo.mConf < 0.6) {
-            tip = "人脸置信度太低";
-            return tip;
+        try {
+
+            if (faceInfo.mConf < 0.6) {
+                tip = "人脸置信度太低";
+                return tip;
+            }
+
+            float[] headPose = faceInfo.headPose;
+            if (Math.abs(headPose[0]) > 20 || Math.abs(headPose[1]) > 20 || Math.abs(headPose[2]) > 20) {
+                tip = "人脸置角度太大，请正对屏幕";
+                return tip;
+            }
+
+            int width = imageFrame.getWidth();
+            int height = imageFrame.getHeight();
+            // 判断人脸大小，若人脸超过屏幕二分一，则提示文案“人脸离手机太近，请调整与手机的距离”；
+            // 若人脸小于屏幕三分一，则提示“人脸离手机太远，请调整与手机的距离”
+            float ratio = (float) faceInfo.mWidth / (float) height;
+            Log.i("liveness_ratio", "ratio=" + ratio);
+            if (ratio > 0.6) {
+                tip = "人脸离屏幕太近，请调整与屏幕的距离";
+                return tip;
+            } else if (ratio < 0.2) {
+                tip = "人脸离屏幕太远，请调整与屏幕的距离";
+                return tip;
+            } else if (faceInfo.mCenter_x > width * 3 / 4) {
+                tip = "人脸在屏幕中太靠右";
+                return tip;
+            } else if (faceInfo.mCenter_x < width / 4) {
+                tip = "人脸在屏幕中太靠左";
+                return tip;
+            } else if (faceInfo.mCenter_y > height * 3 / 4) {
+                tip = "人脸在屏幕中太靠下";
+                return tip;
+            } else if (faceInfo.mCenter_x < height / 4) {
+                tip = "人脸在屏幕中太靠上";
+                return tip;
+            }
+            asyncMath(photoFeature, faceInfo, imageFrame);
+        } catch (Exception e){
+            showToast(e.getMessage());
         }
 
-        float[] headPose = faceInfo.headPose;
-        if (Math.abs(headPose[0]) > 20 || Math.abs(headPose[1]) > 20 || Math.abs(headPose[2]) > 20) {
-            tip = "人脸置角度太大，请正对屏幕";
-            return tip;
-        }
-
-        int width = imageFrame.getWidth();
-        int height = imageFrame.getHeight();
-        // 判断人脸大小，若人脸超过屏幕二分一，则提示文案“人脸离手机太近，请调整与手机的距离”；
-        // 若人脸小于屏幕三分一，则提示“人脸离手机太远，请调整与手机的距离”
-        float ratio = (float) faceInfo.mWidth / (float) height;
-        Log.i("liveness_ratio", "ratio=" + ratio);
-        if (ratio > 0.6) {
-            tip = "人脸离屏幕太近，请调整与屏幕的距离";
-            return tip;
-        } else if (ratio < 0.2) {
-            tip = "人脸离屏幕太远，请调整与屏幕的距离";
-            return tip;
-        } else if (faceInfo.mCenter_x > width * 3 / 4) {
-            tip = "人脸在屏幕中太靠右";
-            return tip;
-        } else if (faceInfo.mCenter_x < width / 4) {
-            tip = "人脸在屏幕中太靠左";
-            return tip;
-        } else if (faceInfo.mCenter_y > height * 3 / 4) {
-            tip = "人脸在屏幕中太靠下";
-            return tip;
-        } else if (faceInfo.mCenter_x < height / 4) {
-            tip = "人脸在屏幕中太靠上";
-            return tip;
-        }
-        asyncMath(photoFeature, faceInfo, imageFrame);
         /*int liveType = PreferencesUtil.getInt(LivenessSettingActivity.TYPE_LIVENSS, LivenessSettingActivity
                 .TYPE_NO_LIVENSS);
         if (liveType == LivenessSettingActivity.TYPE_NO_LIVENSS) {
@@ -574,20 +619,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private String checkFaceCode(int errCode) {
         String tip = "";
-        if (errCode == FaceTracker.ErrCode.NO_FACE_DETECTED.ordinal()) {
-            //            tip = "未检测到人脸";
-        } else if (errCode == FaceTracker.ErrCode.IMG_BLURED.ordinal() ||
-                errCode == FaceTracker.ErrCode.PITCH_OUT_OF_DOWN_MAX_RANGE.ordinal() ||
-                errCode == FaceTracker.ErrCode.PITCH_OUT_OF_UP_MAX_RANGE.ordinal() ||
-                errCode == FaceTracker.ErrCode.YAW_OUT_OF_LEFT_MAX_RANGE.ordinal() ||
-                errCode == FaceTracker.ErrCode.YAW_OUT_OF_RIGHT_MAX_RANGE.ordinal()) {
-            tip = "请静止平视屏幕";
-        } else if (errCode == FaceTracker.ErrCode.POOR_ILLUMINATION.ordinal()) {
-            tip = "光线太暗，请到更明亮的地方";
-        } else if (errCode == FaceTracker.ErrCode.UNKNOW_TYPE.ordinal()) {
-            tip = "未检测到人脸";
+        try {
+            if (errCode == FaceTracker.ErrCode.NO_FACE_DETECTED.ordinal()) {
+                //            tip = "未检测到人脸";
+            } else if (errCode == FaceTracker.ErrCode.IMG_BLURED.ordinal() ||
+                    errCode == FaceTracker.ErrCode.PITCH_OUT_OF_DOWN_MAX_RANGE.ordinal() ||
+                    errCode == FaceTracker.ErrCode.PITCH_OUT_OF_UP_MAX_RANGE.ordinal() ||
+                    errCode == FaceTracker.ErrCode.YAW_OUT_OF_LEFT_MAX_RANGE.ordinal() ||
+                    errCode == FaceTracker.ErrCode.YAW_OUT_OF_RIGHT_MAX_RANGE.ordinal()) {
+                tip = "请静止平视屏幕";
+            } else if (errCode == FaceTracker.ErrCode.POOR_ILLUMINATION.ordinal()) {
+                tip = "光线太暗，请到更明亮的地方";
+            } else if (errCode == FaceTracker.ErrCode.UNKNOW_TYPE.ordinal()) {
+                tip = "未检测到人脸";
+            }
+        } catch (Exception e){
+            showToast(e.getMessage());
         }
+
         return tip;
+    }
+
+    private void showToast(String msg){
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
     }
 
     private volatile boolean matching = false;
@@ -832,8 +886,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             @Override
             public void run() {
                 try {
-
-
                     final Bitmap bitmap = BitmapFactory.decodeStream(
                             getContentResolver().openInputStream(imageUri));
                     ARGBImg argbImg = FeatureUtils.getImageInfo(bitmap);
@@ -873,26 +925,353 @@ public class MainActivity extends Activity implements View.OnClickListener {
         });
     }
 
+    private void pickPhotoFeature(final Bitmap bitmap) {
+        faceDetectManager.setUseDetect(false);
+        Executors.newSingleThreadExecutor().submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    /*final Bitmap bitmap = BitmapFactory.decodeStream(
+                            getContentResolver().openInputStream(imageUri));*/
+                    ARGBImg argbImg = FeatureUtils.getImageInfo(bitmap);
+                    int type = PreferencesUtil.getInt(GlobalFaceTypeModel.TYPE_MODEL,
+                            GlobalFaceTypeModel.RECOGNIZE_LIVE);
+                    int ret = 0;
+                    if (type == GlobalFaceTypeModel.RECOGNIZE_LIVE) {
+                        ret = FaceSDKManager.getInstance().getFaceFeature().faceFeature(argbImg,
+                                photoFeature, 50);
+                    } else if (type == GlobalFaceTypeModel.RECOGNIZE_ID_PHOTO) {
+                        ret = FaceSDKManager.getInstance().getFaceFeature()
+                                .faceFeatureForIDPhoto(argbImg, photoFeature, 50);
+                    }
+                    // 如果要求比较严格，可以ret FaceDetector.DETECT_CODE_OK和 FaceDetector.DETECT_CODE_HIT_LAST
+                    if (ret == FaceDetector.NO_FACE_DETECTED) {
+                        toast("未检测到人脸，可能原因：人脸太小（必须大于最小检测人脸minFaceSize）" +
+                                "，或者人脸角度太大，人脸不是朝上");
+                    } else if (ret != 512) {
+                        toast("抽取特征失败");
+                    } else if (ret == 512) {
+                        faceDetectManager.setUseDetect(true);
+
+                    } else {
+                        toast("未检测到人脸");
+                    }
+                    Log.i("wtf", "photoFeature from image->" + ret);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            iv.setImageBitmap(bitmap);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
-        // 开始检测
-        faceDetectManager.start();
+        try {
+            // 开始检测
+            faceDetectManager.start();
+        } catch (Exception e){
+            showToast(e.getMessage());
+        }
+
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        // 结束检测。
-        faceDetectManager.stop();
+        try {
+            // 结束检测。
+            faceDetectManager.stop();
+        } catch (Exception e){
+            showToast(e.getMessage());
+        }
+
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        faceDetectManager.stop();
+        try {
+            m_Auto = false;
+            faceDetectManager.stop();
+        } catch (Exception e){
+            showToast(e.getMessage());
+        }
+        if (api == null) {
+            return;
+        }
+        api.unInit();
+
     }
 
+    private boolean m_Auto = false;
+    public class CPUThread extends Thread {
+        public CPUThread() {
+            super();
+        }
+        @Override
+        public void run() {
+            super.run();
+            HSIDCardInfo ici;
+            Message msg;
+            try {
+                while (m_Auto) {
+                    try {
+                        if (api.Authenticate(200, 200) != 1) {
+                            msg = Message.obtain();
+                            msg.what = HandlerMsg.READ_ERROR;
+                            h.sendMessage(msg);
+                        } else {
+                            ici = new HSIDCardInfo();
+                            if (api.ReadCard(ici, 200, 1300) == 1) {
+                                msg = Message.obtain();
+                                msg.obj = ici;
+                                msg.what = HandlerMsg.READ_SUCCESS;
+                                h.sendMessage(msg);
+                            }
+                        }
+                        SystemClock.sleep(300);
+                    } catch (Exception e){
+                        msg = Message.obtain();
+                        msg.what = 188;
+                        h.sendMessage(msg);
+                        m_Auto = false;
+                    }
+                }
+            } catch (Exception e){
+                msg = Message.obtain();
+                msg.what = 188;
+                h.sendMessage(msg);
+            }
+
+
+
+        }
+    }
+
+    SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");// 设置日期格式
+    private void readSuccess(Message msg) {
+        try {
+
+            if (msg.what == 188) {
+                tv_status.setText("工作线程出错");
+            }
+
+            if (msg.what == 99 || msg.what == 100) {
+                tv_status.setText((String)msg.obj);
+            }
+            //第一次授权时候的判断是利用handler判断，授权过后就不用这个判断了
+            if (msg.what ==HandlerMsg.CONNECT_SUCCESS) {
+                tv_status.setText("连接成功");
+            }
+            if (msg.what == HandlerMsg.CONNECT_ERROR) {
+                tv_status.setText("连接失败");
+            }
+            if (msg.what == HandlerMsg.READ_ERROR) {
+                //cz();
+                tv_status.setText("卡认证失败");
+            }
+            if (msg.what == HandlerMsg.READ_SUCCESS) {
+                tv_status.setText("读卡成功");
+                /*HSIDCardInfo ic = (HSIDCardInfo) msg.obj;
+                byte[] fp = new byte[1024];
+                fp = ic.getFpDate();
+                String m_FristPFInfo = "";
+                String m_SecondPFInfo = "";
+
+                if (fp[4] == (byte)0x01) {
+                    m_FristPFInfo = String.format("指纹  信息：第一枚指纹注册成功。指位：%s。指纹质量：%d \n", GetFPcode(fp[5]), fp[6]);
+                } else {
+                    m_FristPFInfo = "身份证无指纹 \n";
+                }
+                if (fp[512 + 4] == (byte)0x01) {
+                    m_SecondPFInfo = String.format("指纹  信息：第二枚指纹注册成功。指位：%s。指纹质量：%d \n", GetFPcode(fp[512 + 5]),
+                            fp[512 + 6]);
+                } else {
+                    m_SecondPFInfo = "身份证无指纹 \n";
+                }
+                tv_info.setText("姓名：" + ic.getPeopleName() + "\n" + "性别：" + ic.getSex() + "\n" + "民族：" + ic.getPeople()
+                        + "\n" + "出生日期：" + df.format(ic.getBirthDay()) + "\n" + "地址：" + ic.getAddr() + "\n" + "身份号码："
+                        + ic.getIDCard() + "\n" + "签发机关：" + ic.getDepartment() + "\n" + "有效期限：" + ic.getStrartDate()
+                        + "-" + ic.getEndDate() + "\n"+m_FristPFInfo+"\n"+m_SecondPFInfo);
+//                Test.test("/mnt/sdcard/test.txt4", ic.toString());
+                try {
+                    int ret = api.Unpack(filepath, ic.getwltdata());// 照片解码
+                    Test.test("/mnt/sdcard/test3.txt", "解码中");
+                    if (ret != 0) {// 读卡失败
+                        return;
+                    }
+                    FileInputStream fis = new FileInputStream(filepath + "/zp.bmp");
+                    Bitmap bmp = BitmapFactory.decodeStream(fis);
+                    fis.close();
+                    iv_photo.setImageBitmap(bmp);
+//                    pickPhotoFeature(bmp);
+                } catch (FileNotFoundException e) {
+                    Toast.makeText(getApplicationContext(), "头像不存在！", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    // TODO 自动生成的 catch 块
+                    Toast.makeText(getApplicationContext(), "头像读取错误", Toast.LENGTH_SHORT).show();
+                }catch (Exception e)
+                {
+                    Toast.makeText(getApplicationContext(), "头像解码失败", Toast.LENGTH_SHORT).show();
+                }*/
+            }
+        } catch (Exception e){
+            showToast(e.getMessage());
+        }
+    }
+
+    /**
+     * 指纹 指位代码
+     *
+     * @param FPcode
+     * @return
+     */
+    String GetFPcode(int FPcode) {
+        switch (FPcode) {
+            case 11:
+                return "右手拇指";
+            case 12:
+                return "右手食指";
+            case 13:
+                return "右手中指";
+            case 14:
+                return "右手环指";
+            case 15:
+                return "右手小指";
+            case 16:
+                return "左手拇指";
+            case 17:
+                return "左手食指";
+            case 18:
+                return "左手中指";
+            case 19:
+                return "左手环指";
+            case 20:
+                return "左手小指";
+            case 97:
+                return "右手不确定指位";
+            case 98:
+                return "左手不确定指位";
+            case 99:
+                return "其他不确定指位";
+            default:
+                return "未知";
+        }
+    }
+
+    Handler h = new Handler(){
+        public void handleMessage(android.os.Message msg) {
+            if (msg.what == 99 || msg.what == 100) {
+                tv_status.setText((String)msg.obj);
+            }
+            //第一次授权时候的判断是利用handler判断，授权过后就不用这个判断了
+            if (msg.what ==HandlerMsg.CONNECT_SUCCESS) {
+                tv_status.setText("连接成功");
+
+            }
+            if (msg.what == HandlerMsg.CONNECT_ERROR) {
+                tv_status.setText("连接失败");
+            }
+            if (msg.what == HandlerMsg.READ_ERROR) {
+                //cz();
+                tv_status.setText("卡认证失败");
+            }
+            if (msg.what == HandlerMsg.READ_SUCCESS) {
+                faceDetectManager.setUseDetect(false);
+                tv_status.setText("读卡成功");
+                HSIDCardInfo ic = (HSIDCardInfo) msg.obj;
+                byte[] fp = new byte[1024];
+                fp = ic.getFpDate();
+                String m_FristPFInfo = "";
+                String m_SecondPFInfo = "";
+
+                if (fp[4] == (byte)0x01) {
+                    m_FristPFInfo = String.format("指纹  信息：第一枚指纹注册成功。指位：%s。指纹质量：%d \n", GetFPcode(fp[5]), fp[6]);
+                } else {
+                    m_FristPFInfo = "身份证无指纹 \n";
+                }
+                if (fp[512 + 4] == (byte)0x01) {
+                    m_SecondPFInfo = String.format("指纹  信息：第二枚指纹注册成功。指位：%s。指纹质量：%d \n", GetFPcode(fp[512 + 5]),
+                            fp[512 + 6]);
+                } else {
+                    m_SecondPFInfo = "身份证无指纹 \n";
+                }
+                if (ic.getcertType() == " ") {
+                    tv_info.setText("证件类型：身份证\n" + "姓名："
+                            + ic.getPeopleName() + "\n" + "性别：" + ic.getSex()
+                            + "\n" + "民族：" + ic.getPeople() + "\n" + "出生日期："
+                            + df.format(ic.getBirthDay()) + "\n" + "地址："
+                            + ic.getAddr() + "\n" + "身份号码：" + ic.getIDCard()
+                            + "\n" + "签发机关：" + ic.getDepartment() + "\n"
+                            + "有效期限：" + ic.getStrartDate() + "-"
+                            + ic.getEndDate() + "\n" + m_FristPFInfo + "\n"
+                            + m_SecondPFInfo);
+                } else {
+                    if(ic.getcertType() == "J")
+                    {
+                        tv_info.setText("证件类型：港澳台居住证（J）\n"
+                                + "姓名：" + ic.getPeopleName() + "\n" + "性别："
+                                + ic.getSex() + "\n"
+                                + "签发次数：" + ic.getissuesNum() + "\n"
+                                + "通行证号码：" + ic.getPassCheckID() + "\n"
+                                + "出生日期：" + df.format(ic.getBirthDay())
+                                + "\n" + "地址：" + ic.getAddr() + "\n" + "身份号码："
+                                + ic.getIDCard() + "\n" + "签发机关："
+                                + ic.getDepartment() + "\n" + "有效期限："
+                                + ic.getStrartDate() + "-" + ic.getEndDate() + "\n"
+                                + m_FristPFInfo + "\n" + m_SecondPFInfo);
+                    }
+                    else{
+                        if(ic.getcertType() == "I")
+                        {
+                            tv_info.setText("证件类型：外国人永久居留证（I）\n"
+                                    + "英文名称：" + ic.getPeopleName() + "\n"
+                                    + "中文名称：" + ic.getstrChineseName() + "\n"
+                                    + "性别：" + ic.getSex() + "\n"
+                                    + "永久居留证号：" + ic.getIDCard() + "\n"
+                                    + "国籍：" + ic.getstrNationCode() + "\n"
+                                    + "出生日期：" + df.format(ic.getBirthDay())
+                                    + "\n" + "证件版本号：" + ic.getstrCertVer() + "\n"
+                                    + "申请受理机关：" + ic.getDepartment() + "\n"
+                                    + "有效期限："+ ic.getStrartDate() + "-" + ic.getEndDate() + "\n"
+                                    + m_FristPFInfo + "\n" + m_SecondPFInfo);
+                        }
+                    }
+
+                }
+                Test.test("/mnt/sdcard/test.txt4", ic.toString());
+                try {
+                    int ret = api.Unpack(filepath, ic.getwltdata());// 照片解码
+                    Test.test("/mnt/sdcard/test3.txt", "解码中");
+                    if (ret != 0) {// 读卡失败
+                        return;
+                    }
+                    FileInputStream fis = new FileInputStream(filepath + "/zp.bmp");
+                    Bitmap bmp = BitmapFactory.decodeStream(fis);
+                    fis.close();
+                    iv_photo.setImageBitmap(bmp);
+                    pickPhotoFeature(bmp);
+                } catch (FileNotFoundException e) {
+                    Toast.makeText(getApplicationContext(), "头像不存在！", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    // TODO 自动生成的 catch 块
+                    Toast.makeText(getApplicationContext(), "头像读取错误", Toast.LENGTH_SHORT).show();
+                }catch (Exception e)
+                {
+                    Toast.makeText(getApplicationContext(), "头像解码失败", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        };
+    };
 
     private static class MyHandler extends Handler {
 
@@ -904,9 +1283,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void handleMessage(Message msg) {
-            if (weak.get()!=null) {
-
-            }
+            /*if (weak.get()!=null) {
+                if (msg.what == HandlerMsg.READ_SUCCESS) {
+                    weak.get().readSuccess(msg);
+                }
+            }*/
         }
     }
 

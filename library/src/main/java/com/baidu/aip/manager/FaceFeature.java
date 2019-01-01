@@ -3,15 +3,12 @@
  */
 package com.baidu.aip.manager;
 
+import android.content.Context;
+
 import com.baidu.aip.entity.ARGBImg;
-import com.baidu.aip.entity.Feature;
 import com.baidu.idl.facesdk.FaceInfo;
 import com.baidu.idl.facesdk.FaceRecognize;
 import com.baidu.idl.facesdk.FaceSDK;
-import com.baidu.idl.facesdk.FaceTracker;
-
-import android.content.Context;
-import android.util.Log;
 
 public class FaceFeature {
 
@@ -20,14 +17,19 @@ public class FaceFeature {
 
     public void init(Context context) {
         if (faceRecognize == null) {
-            faceRecognize = new FaceRecognize(context);
-            // RECOGNIZE_LIVE普通生活照、视频帧识别模型（包含特征抽取）
-            // RECOGNIZE_ID_PHOTO 身份证芯片模型（包含特征抽取）
-            // RECOGNIZE_NIR 近红外图片识别模型（包含特征抽取）
-            // 两张图片的识别需要使用相同的模型
-            faceRecognize.initModel(FaceSDK.RecognizeType.RECOGNIZE_LIVE);
-            faceRecognize.initModel(FaceSDK.RecognizeType.RECOGNIZE_ID_PHOTO);
-            // faceRecognize.initModel(FaceSDK.RecognizeType.RECOGNIZE_NIR);
+            try {
+                faceRecognize = new FaceRecognize(context);
+                // RECOGNIZE_LIVE普通生活照、视频帧识别模型（包含特征抽取）
+                // RECOGNIZE_ID_PHOTO 身份证芯片模型（包含特征抽取）
+                // RECOGNIZE_NIR 近红外图片识别模型（包含特征抽取）
+                // 两张图片的识别需要使用相同的模型
+                faceRecognize.initModel(FaceSDK.RecognizeType.RECOGNIZE_LIVE);
+                faceRecognize.initModel(FaceSDK.RecognizeType.RECOGNIZE_ID_PHOTO);
+                // faceRecognize.initModel(FaceSDK.RecognizeType.RECOGNIZE_NIR);
+            } catch (Exception e){
+
+            }
+
         }
     }
 
