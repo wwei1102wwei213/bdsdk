@@ -5,4 +5,10 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="buttonColor">#FF6600</color>
+
+    <color name="ai_base_all">#303F9F</color>
+    <color name="ai_base_bg">#3F51B5</color>
+    <color name="ai_bg_footer">#3F51B5</color>
+    <color name="ai_bg_menu">#30669F</color>
+
 </resources>
