@@ -190,8 +190,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         try {
             dialog = new ProgressDialog(this);
             dialog.setCancelable(false);
-            dialog.setMessage("正在初始化设备");
+            dialog.setMessage("正在初始化算法");
             dialog.show();
+
+            initMeition();
+
             PreferencesUtil.initPrefs(this);
             // 使用人脸1：n时使用
             DBManager.getInstance().init(this);
@@ -224,8 +227,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 @Override
                 public void initSuccess() {
                     dialog.dismiss();
+//                    dialog.setMessage("正在初始化设备");
                     toast("初始化成功");
-
+//                    initMeition();
                 }
 
                 @Override
@@ -243,6 +247,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
             e.printStackTrace();
             showToast(e.getMessage());
         }
+
+//            sam.setText(api.GetSAMID());
+    }
+
+    private void initMeition() {
         try {
             copy(MainActivity.this, "base.dat", "base.dat", filepath);
             copy(MainActivity.this, "license.lic", "license.lic", filepath);
@@ -266,7 +275,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         } catch (Exception e){
             e.printStackTrace();
         }
-//            sam.setText(api.GetSAMID());
     }
 
     // 用于检测人脸。
@@ -276,11 +284,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
             // 从系统相机获取图片帧。
             final CameraImageSource cameraImageSource = new CameraImageSource(this);
             // 图片越小检测速度越快，闸机场景640 * 480 可以满足需求。实际预览值可能和该值不同。和相机所支持的预览尺寸有关。
-            // 可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
-            cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 480), dip2px(this, 640));
+//             可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
+
+           /*List<Camera.Size> list =
+            Camera.open().getParameters().getSupportedPreviewSizes();
+           if (list!=null) {
+               for (Camera.Size size:list) {
+                   Log.e("BDSDK", "Camera.Size:"+size.width+","+size.height);
+               }
+           }*/
+
+            cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 800), dip2px(this, 600));
 
             // 设置最小人脸，该值越小，检测距离越远，该值越大，检测性能越好。范围为80-200
-            FaceSDKManager.getInstance().getFaceDetector().setMinFaceSize(120);
+            FaceSDKManager.getInstance().getFaceDetector().setMinFaceSize(80);
             // 设置预览
             cameraImageSource.setPreviewView(previewView);
             // 设置图片源
@@ -313,7 +330,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         } catch (Exception e){
             showToast("initCamera=====>"+e.getMessage());
         }
-
+        dialog.dismiss();
 
     }
 
@@ -1185,7 +1202,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 tv_status.setText("卡认证失败");
             }
             if (msg.what == HandlerMsg.READ_SUCCESS) {
-                faceDetectManager.setUseDetect(false);
+//                faceDetectManager.setUseDetect(false);
                 tv_status.setText("读卡成功");
                 HSIDCardInfo ic = (HSIDCardInfo) msg.obj;
                 byte[] fp = new byte[1024];
@@ -1212,8 +1229,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             + ic.getAddr() + "\n" + "身份号码：" + ic.getIDCard()
                             + "\n" + "签发机关：" + ic.getDepartment() + "\n"
                             + "有效期限：" + ic.getStrartDate() + "-"
-                            + ic.getEndDate() + "\n" + m_FristPFInfo + "\n"
-                            + m_SecondPFInfo);
+                            + ic.getEndDate());
+                            /*+ "\n" + m_FristPFInfo + "\n"
+                            + m_SecondPFInfo);*/
                 } else {
                     if(ic.getcertType() == "J")
                     {
@@ -1226,7 +1244,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                 + "\n" + "地址：" + ic.getAddr() + "\n" + "身份号码："
                                 + ic.getIDCard() + "\n" + "签发机关："
                                 + ic.getDepartment() + "\n" + "有效期限："
-                                + ic.getStrartDate() + "-" + ic.getEndDate() + "\n"
+                                + ic.getStrartDate() + "-" + ic.getEndDate()
+                                + "\n"
                                 + m_FristPFInfo + "\n" + m_SecondPFInfo);
                     }
                     else{
