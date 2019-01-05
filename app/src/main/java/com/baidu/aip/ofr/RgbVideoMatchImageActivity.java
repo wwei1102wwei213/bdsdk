@@ -179,6 +179,7 @@ public class RgbVideoMatchImageActivity extends Activity implements View.OnClick
 
             }
         });
+
     }
 
     @Override
@@ -460,7 +461,7 @@ public class RgbVideoMatchImageActivity extends Activity implements View.OnClick
      * 绘制人脸框。
      */
     private void showFrame(ImageFrame imageFrame, FaceInfo[] faceInfos) {
-        rectF = new RectF(W - dip2px(this, 300), 0, 0, H - dip2px(this, 400));
+//        rectF = new RectF(W - dip2px(this, 300), 0, 0, H - dip2px(this, 400));
         Canvas canvas = textureView.lockCanvas();
         if (canvas == null) {
             textureView.unlockCanvasAndPost(canvas);
