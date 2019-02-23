@@ -3,29 +3,6 @@
  */
 package com.baidu.aip.ofr;
 
-import java.io.FileNotFoundException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import com.baidu.aip.api.FaceApi;
-import com.baidu.aip.entity.ARGBImg;
-import com.baidu.aip.ImageFrame;
-import com.baidu.aip.face.CameraImageSource;
-import com.baidu.aip.face.FaceDetectManager;
-import com.baidu.aip.face.FaceFilter;
-import com.baidu.aip.face.PreviewView;
-import com.baidu.aip.face.camera.CameraView;
-import com.baidu.aip.face.camera.ICameraControl;
-import com.baidu.aip.manager.FaceDetector;
-import com.baidu.aip.manager.FaceLiveness;
-import com.baidu.aip.manager.FaceSDKManager;
-import com.baidu.aip.ofr.utils.GlobalFaceTypeModel;
-import com.baidu.aip.utils.FeatureUtils;
-import com.baidu.aip.utils.ImageUtils;
-import com.baidu.aip.utils.PreferencesUtil;
-import com.baidu.idl.facesdk.FaceInfo;
-import com.baidu.idl.facesdk.FaceTracker;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -49,6 +26,28 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.baidu.aip.ImageFrame;
+import com.baidu.aip.api.FaceApi;
+import com.baidu.aip.entity.ARGBImg;
+import com.baidu.aip.face.CameraImageSource;
+import com.baidu.aip.face.FaceDetectManager;
+import com.baidu.aip.face.PreviewView;
+import com.baidu.aip.face.camera.CameraView;
+import com.baidu.aip.face.camera.ICameraControl;
+import com.baidu.aip.manager.FaceDetector;
+import com.baidu.aip.manager.FaceLiveness;
+import com.baidu.aip.manager.FaceSDKManager;
+import com.baidu.aip.ofr.utils.GlobalFaceTypeModel;
+import com.baidu.aip.utils.FeatureUtils;
+import com.baidu.aip.utils.ImageUtils;
+import com.baidu.aip.utils.PreferencesUtil;
+import com.baidu.idl.facesdk.FaceInfo;
+import com.baidu.idl.facesdk.FaceTracker;
+
+import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RgbVideoMatchImageActivity extends Activity implements View.OnClickListener {
 
@@ -111,7 +110,7 @@ public class RgbVideoMatchImageActivity extends Activity implements View.OnClick
         final CameraImageSource cameraImageSource = new CameraImageSource(this);
         // 图片越小检测速度越快，闸机场景640 * 480 可以满足需求。实际预览值可能和该值不同。和相机所支持的预览尺寸有关。
         // 可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
-        cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 300), dip2px(this, 400));
+        cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 600), dip2px(this, 900));
 
         // 设置最小人脸，该值越小，检测距离越远，该值越大，检测性能越好。范围为80-200
         FaceSDKManager.getInstance().getFaceDetector().setMinFaceSize(120);
