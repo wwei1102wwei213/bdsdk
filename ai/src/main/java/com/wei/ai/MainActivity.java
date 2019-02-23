@@ -32,6 +32,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,7 +73,9 @@ import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -118,8 +121,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private TexturePreviewView previewView;
     private TextureView textureView;
     private TextView tipTv, matchScoreTv;
-    private ImageView iv, iv_photo;
-    private View btn;
+    private ImageView  iv_photo;
+    private Button btn_setting, btn_search, btn_close;
     private void initViews() {
         try {
             tv_status = findViewById(R.id.tv_status);
@@ -127,10 +130,28 @@ public class MainActivity extends Activity implements View.OnClickListener {
             textureView = findViewById(R.id.texture_view);
             tipTv =  findViewById(R.id.tip);
             matchScoreTv = (TextView) findViewById(R.id.match_score_tv);
-            iv = findViewById(R.id.pick_from_album_iv);
-            btn = findViewById(R.id.btn);
+//            iv = findViewById(R.id.pick_from_album_iv);
+
             tv_info = findViewById(R.id.tv_info);
             iv_photo = findViewById(R.id.iv_photo);
+            btn_setting.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+            btn_search.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+            btn_close.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
         } catch (Exception e){
             showToast(e.getMessage());
         }
@@ -285,14 +306,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             final CameraImageSource cameraImageSource = new CameraImageSource(this);
             // 图片越小检测速度越快，闸机场景640 * 480 可以满足需求。实际预览值可能和该值不同。和相机所支持的预览尺寸有关。
 //             可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
-
-           /*List<Camera.Size> list =
-            Camera.open().getParameters().getSupportedPreviewSizes();
-           if (list!=null) {
-               for (Camera.Size size:list) {
-                   Log.e("BDSDK", "Camera.Size:"+size.width+","+size.height);
-               }
-           }*/
 
             cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 800), dip2px(this, 600));
 
@@ -932,7 +945,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            iv.setImageBitmap(bitmap);
+//                            iv.setImageBitmap(bitmap);
                         }
                     });
                 } catch (FileNotFoundException e) {
@@ -977,7 +990,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            iv.setImageBitmap(bitmap);
+//                            iv.setImageBitmap(bitmap);
                         }
                     });
                 } catch (Exception e) {
@@ -1292,6 +1305,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
         };
     };
 
+    private void handleUpdateTime(String str) {
+        if (str==null) return;
+        try {
+
+        } catch (Exception e){
+            Log.e("MAI", e.getMessage());
+        }
+    }
+
     private static class MyHandler extends Handler {
 
         private WeakReference<MainActivity> weak;
@@ -1302,11 +1324,45 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void handleMessage(Message msg) {
-            /*if (weak.get()!=null) {
-                if (msg.what == HandlerMsg.READ_SUCCESS) {
-                    weak.get().readSuccess(msg);
+            try {
+                if (weak.get()==null) return;
+                if (msg.what == MSG_UPDATE_CURRENT_TIME) {
+                    weak.get().handleUpdateTime(msg.obj.toString());
                 }
-            }*/
+            } catch (Exception e){
+                Log.e("MAI", e.getMessage());
+            }
+
+        }
+    }
+
+    private boolean isExit = false;
+    private static final int MSG_UPDATE_CURRENT_TIME = 254;
+    private class MyTimeTask implements Runnable {
+
+        private SimpleDateFormat sdf;
+
+        public MyTimeTask() {
+            sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA);
+        }
+
+        @Override
+        public void run() {
+            try {
+                if (!isExit) {
+                    Thread.sleep(30000);
+                    String str = sdf.format(new Date());
+                    Log.e("MyTimeTask", str);
+                    if (mHandler!=null) {
+                        Message msg = Message.obtain();
+                        msg.what = MSG_UPDATE_CURRENT_TIME;
+                        msg.obj = str;
+                        mHandler.sendMessage(msg);
+                    }
+                }
+            } catch (Exception e){
+                Log.e("MyTimeTask", e.getMessage());
+            }
         }
     }
 

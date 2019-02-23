@@ -11,67 +11,73 @@
     android:background="@color/ai_base_all">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="120dp"
         android:background="@drawable/ai_bg_title">
 
     </RelativeLayout>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-
-        >
+        android:layout_height="80dp"
+        android:gravity="center_vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="当前时间:"
+            android:textSize="@dimen/ai_top_style_text_size"
+            android:textColor="@color/ai_top_style_text_color"
+            />
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/ai_top_style_text_size"
+            android:textColor="@color/ai_top_style_text_color"
+            android:paddingLeft="10dp"
+            android:text="2019-02-13 12:20"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="岗位:"
+            android:textSize="@dimen/ai_top_style_text_size"
+            android:textColor="@color/ai_top_style_text_color"
+            />
+        <TextView
+            android:id="@+id/tv_gw"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/ai_top_style_text_size"
+            android:textColor="@color/ai_top_style_text_color"
+            android:paddingLeft="10dp"
+            android:text="1岗位"/>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:visibility="visible"
+        android:layout_marginLeft="100dp"
+        android:layout_marginRight="100dp">
+        <ImageView
+            android:id="@+id/iv_photo"
+            android:layout_width="240dp"
+            android:layout_height="300dp" />
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="0dp"
-            android:layout_weight="3"
-            android:layout_height="match_parent"
-            android:background="@color/ai_base_bg"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="8dp">
-
-            <RelativeLayout
-                android:layout_width="600dp"
-                android:layout_height="380dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_info_detail">
-                <TextView
-                    android:layout_marginLeft="20dip"
-                    android:layout_marginTop="20dip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tv_info"
-                    android:textSize="20sp"
-                    android:lineSpacingExtra="2.5dp"
-                    android:lineSpacingMultiplier="1.1"
-                    android:text="test"/>
-                <ImageView
-                    android:id="@+id/iv_photo"
-                    android:layout_width="160dp"
-                    android:layout_height="160dp"
-                    android:src="@mipmap/ic_launcher"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginRight="20dp"/>
-            </RelativeLayout>
-
-            <ImageView
-                android:id="@+id/pick_from_album_iv"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"/>
-        </LinearLayout>
-        <RelativeLayout
-            android:id="@+id/v_video"
-            android:layout_width="0dp"
-            android:layout_weight="3"
-            android:layout_height="match_parent"
-            android:background="@color/ai_base_bg"
-            android:layout_margin="5dp">
+            android:layout_weight="1"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/tv_info"
+                android:layout_marginLeft="20dip"
+                android:layout_marginTop="20dip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:lineSpacingExtra="2.5dp"
+                android:lineSpacingMultiplier="1.1"/>
             <TextView
                 android:id="@+id/tip"
                 android:layout_width="match_parent"
@@ -92,50 +98,83 @@
                 android:textSize="30sp"
                 android:layout_marginBottom="20dp"
                 />
-            <RelativeLayout
-                android:layout_width="600dp"
-                android:layout_height="800dp"
-                android:layout_centerInParent="true">
-                <com.baidu.aip.face.TexturePreviewView
-                    android:id="@+id/preview_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    />
-                <TextureView
-                    android:id="@+id/texture_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
-            </RelativeLayout>
-
-        </RelativeLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="match_parent"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginRight="8dp"
-            android:background="@color/ai_bg_menu">
-            <View
-                android:id="@+id/btn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_centerVertical="true"
-                android:layout_alignParentRight="true"/>
         </LinearLayout>
+        <RelativeLayout
+            android:layout_width="240dp"
+            android:layout_height="300dp"
+            >
+            <com.baidu.aip.face.TexturePreviewView
+                android:id="@+id/preview_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+            <TextureView
+                android:id="@+id/texture_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </RelativeLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+
+        >
+
+
+
     </LinearLayout>
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="60dp"
         android:background="@color/ai_bg_footer">
         <TextView
             android:id="@+id/tv_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/holo_red_dark"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="#999"
             android:layout_alignParentBottom="true"
+            android:text="连接状态"
+            android:gravity="center_vertical"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
             />
+        <Button
+            android:id="@+id/btn_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_setting_btn"
+            android:text="设  置"
+            android:textColor="#ccc"
+            android:textSize="18sp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_centerInParent="true"/>
+        <Button
+            android:id="@+id/btn_search"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_search_btn"
+            android:text="查  询"
+            android:textColor="#ccc"
+            android:textSize="18sp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_toLeftOf="@id/btn_setting"
+            android:layout_marginRight="12dp"/>
+        <Button
+            android:id="@+id/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_close_btn"
+            android:text="关  闭"
+            android:textColor="#ccc"
+            android:textSize="18sp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_toRightOf="@id/btn_setting"
+            android:layout_marginLeft="12dp"/>
     </RelativeLayout>
 
 </LinearLayout>

@@ -11,4 +11,5 @@
     <color name="ai_bg_footer">#3F51B5</color>
     <color name="ai_bg_menu">#30669F</color>
 
+    <color name="ai_top_style_text_color">#ccc</color>
 </resources>
