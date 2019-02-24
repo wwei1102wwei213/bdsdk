@@ -1,5 +1,33 @@
 package com.baidu.aip.ofr;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.v4.app.ActivityCompat;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.baidu.aip.api.FaceApi;
+import com.baidu.aip.db.DBManager;
+import com.baidu.aip.entity.Group;
+import com.baidu.aip.manager.FaceSDKManager;
+import com.baidu.aip.ofr.utils.GlobalFaceTypeModel;
+import com.baidu.aip.ofr.utils.ZipUtil;
+import com.baidu.aip.utils.FileUitls;
+import com.baidu.aip.utils.PreferencesUtil;
+import com.baidu.idl.facesdk.FaceSDK;
+import com.baidu.idl.license.AndroidLicenser;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,35 +36,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.baidu.aip.api.FaceApi;
-import com.baidu.aip.db.DBManager;
-import com.baidu.aip.entity.Group;
-import com.baidu.aip.manager.FaceSDKManager;
-import com.baidu.aip.ofr.utils.GlobalFaceTypeModel;
-import com.baidu.aip.ofr.utils.MultiThreadManager;
-import com.baidu.aip.ofr.utils.ZipUtil;
-import com.baidu.aip.utils.FileUitls;
-import com.baidu.aip.utils.PreferencesUtil;
-import com.baidu.idl.facesdk.FaceSDK;
-import com.baidu.idl.license.AndroidLicenser;
-
-import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
@@ -328,7 +327,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         int type = PreferencesUtil.getInt(LivenessSettingActivity.TYPE_LIVENSS, LivenessSettingActivity
                 .TYPE_NO_LIVENSS);
         if (type == LivenessSettingActivity.TYPE_NO_LIVENSS) {
-//            Toast.makeText(this, "当前活体策略：无活体", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "当前活体策略：无活体", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(MainActivity.this, RgbVideoMatchImageActivity.class);
             startActivity(intent);
         } else if (type == LivenessSettingActivity.TYPE_RGB_LIVENSS) {

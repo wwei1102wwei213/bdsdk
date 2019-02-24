@@ -144,15 +144,12 @@ public class RgbVideoMatchImageActivity extends Activity implements View.OnClick
     private void setCameraType(CameraImageSource cameraImageSource) {
         // TODO 选择使用前置摄像头
          cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_FACING_FRONT);
-
         // TODO 选择使用usb摄像头
 //        cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_USB);
-//        // 如果不设置，人脸框会镜像，显示不准
-        previewView.getTextureView().setScaleX(-1);
-
         // TODO 选择使用后置摄像头
 //        cameraImageSource.getCameraControl().setCameraFacing(ICameraControl.CAMERA_FACING_BACK);
-//        previewView.getTextureView().setScaleX(-1);
+        // 如果不设置，人脸框会镜像，显示不准
+        previewView.getTextureView().setScaleX(-1);
     }
 
     private int count = 0;
@@ -163,7 +160,7 @@ public class RgbVideoMatchImageActivity extends Activity implements View.OnClick
             @Override
             public void onDetectFace(int retCode, FaceInfo[] infos, ImageFrame frame) {
                 // TODO 显示检测的图片。用于调试，如果人脸sdk检测的人脸需要朝上，可以通过该图片判断
-                Log.e("MBAD", ""+(++count));
+//                Log.e("MBAD", ""+(++count));
                 final Bitmap bitmap =
                         Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(),
                                 Bitmap.Config.ARGB_8888);

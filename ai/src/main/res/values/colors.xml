@@ -12,4 +12,8 @@
     <color name="ai_bg_menu">#30669F</color>
 
     <color name="ai_top_style_text_color">#ccc</color>
+    <color name="ai_menu_title_color">#333</color>
+    <color name="ai_menu_detail_color">#3F51B5</color>
+    <color name="line_other">#40ffffff</color>
+    <color name="other_text_color">#333</color>
 </resources>

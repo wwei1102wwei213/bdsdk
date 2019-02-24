@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="ai_top_style_text_size">14sp</dimen>
-
+    <dimen name="ai_top_style_text_size">28sp</dimen>
+    <dimen name="ai_top_text_size">24sp</dimen>
+    <dimen name="ai_menu_title_size">30sp</dimen>
+    <dimen name="ai_menu_detail_size">30sp</dimen>
+    <dimen name="line_size_other">3dp</dimen>
 </resources>
