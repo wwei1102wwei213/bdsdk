@@ -9,8 +9,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.baidu.aip.utils.PreferencesUtil;
 import com.wei.ai.utils.SPLongUtils;
 
 public class SettingActivity extends Activity{
@@ -34,6 +36,7 @@ public class SettingActivity extends Activity{
     private EditText et_score, et_check_time, et_face_size;
     private Button btn;
     private void initViews() {
+        ((TextView) findViewById(R.id.tv_key)).setText(PreferencesUtil.getString("activate_key", ""));
         et_score = findViewById(R.id.et_score);
         et_check_time = findViewById(R.id.et_check_time);
         et_face_size = findViewById(R.id.et_face_size);
@@ -45,6 +48,12 @@ public class SettingActivity extends Activity{
             @Override
             public void onClick(View v) {
                 toEdit();
+            }
+        });
+        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
     }
@@ -79,6 +88,7 @@ public class SettingActivity extends Activity{
                 SPLongUtils.saveInt(this, "mbad_once_check_time", time*1000);
             }
             showToast("修改成功");
+            finish();
         } catch (Exception e){
             showToast("数据不符合规则");
         }

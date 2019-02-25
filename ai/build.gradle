@@ -81,4 +81,5 @@ dependencies {
         compile project(path: ':orbbec')
         compile project(path: ':iminect')*/
     implementation files('libs/thinkandroid-1.1-bin.jar')
+    implementation 'com.google.code.gson:gson:2.8.1'
 }

@@ -17,7 +17,7 @@
     <color name="line_other">#40ffffff</color>
     <color name="other_text_color">#333</color>
     <color name="et_setting_text_color">#FF4081</color>
-    <color name="title_setting_text_color">#ccc</color>
+    <color name="title_setting_text_color">#333</color>
 
     <color name="item_search_text_color">#333</color>
     <color name="title_search_text_color">#333</color>

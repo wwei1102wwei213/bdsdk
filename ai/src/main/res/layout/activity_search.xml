@@ -7,9 +7,21 @@
     android:background="@color/ai_base_all">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="120dp"
         android:background="#22ffffff"
-        android:paddingTop="30dp">
+        >
+        <TextView
+            android:id="@+id/tv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:drawableLeft="@drawable/white_to_back"
+            android:text="返回"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="30sp"
+            android:drawablePadding="8dp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -21,18 +33,194 @@
     </RelativeLayout>
 
     <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="@drawable/ao_bg_menu_top"
+        android:layout_marginTop="20dp">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="检测时间："
+                android:textColor="#333"
+                android:textSize="30sp"
+                android:gravity="center_vertical"/>
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical">
+
+            </Spinner>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="姓名："
+                android:textColor="#333"
+                android:textSize="30sp"
+                android:gravity="center_vertical"/>
+            <EditText
+                android:id="@+id/et_name"
+                android:layout_width="320dp"
+                android:layout_height="48dp"
+                android:text=""
+                android:hint="请输入要查询的姓名"
+                android:textColorHint="#999"
+                android:gravity="center_vertical"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:background="@drawable/ai_bg_et"
+                android:textSize="@dimen/et_setting_text_size"
+                android:textColor="#333"
+                android:inputType="number"/>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="match_parent"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="身份证号："
+                android:textColor="#333"
+                android:textSize="30sp"
+                android:gravity="center_vertical"/>
+            <EditText
+                android:id="@+id/et_card_num"
+                android:layout_width="360dp"
+                android:layout_height="48dp"
+                android:text=""
+                android:hint="请输入身份证号码"
+                android:textColorHint="#999"
+                android:gravity="center_vertical"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:background="@drawable/ai_bg_et"
+                android:textSize="@dimen/et_setting_text_size"
+                android:textColor="#333"
+                android:inputType="text"/>
+        </LinearLayout>
+    </LinearLayout>
+    <Button
+        android:id="@+id/btn_search"
+        android:layout_width="300dp"
+        android:layout_height="72dp"
+        android:text="查询"
+        android:textColor="@color/white"
+        android:textSize="32sp"
+        android:background="@drawable/ai_bg_search_bn"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"/>
+    <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginLeft="160dp"
         android:layout_marginRight="160dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/ai_bg_body"
         android:padding="20dp">
+        <LinearLayout
+            android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="60dp"
+            >
+            <LinearLayout
+                android:id="@+id/v_body"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="60dp">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="姓名"
+                    android:textColor="#333"
+                    android:textSize="30sp"/>
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@color/line_other"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="性别"
+                    android:textColor="#333"
+                    android:textSize="30sp"/>
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@color/line_other"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="2.5"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="身份证号"
+                    android:textColor="#333"
+                    android:textSize="30sp"/>
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@color/line_other"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="2.5"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="检测时间"
+                    android:textColor="#333"
+                    android:textSize="30sp"/>
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@color/line_other"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1.5"
+                    android:layout_height="match_parent"
+                    android:text="检测结果"
+                    android:gravity="center"
+                    android:textColor="#333"
+                    android:textSize="30sp"/>
 
+                
+            </LinearLayout>
+        </LinearLayout>
+        <ListView
+            android:id="@+id/lv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:layout_marginTop="10dp"/>
 
 
     </LinearLayout>
@@ -43,7 +231,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="20dp">
         <Button
-            android:id="@+id/btn_back"
+            android:id="@+id/btn_pre"
             android:layout_width="300dp"
             android:layout_height="72dp"
             android:text="上一页"

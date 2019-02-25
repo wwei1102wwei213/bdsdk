@@ -23,6 +23,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.TextureView;
@@ -54,10 +55,14 @@ import com.huashi.otg.sdk.HSIDCardInfo;
 import com.huashi.otg.sdk.HandlerMsg;
 import com.huashi.otg.sdk.HsOtgApi;
 import com.huashi.otg.sdk.Test;
+import com.wei.ai.db.CheckDataBean;
+import com.wei.ai.db.DBHelper;
+import com.wei.ai.db.InfoBean;
 import com.wei.ai.utils.GlobalFaceTypeModel;
 import com.wei.ai.utils.SPLongUtils;
 import com.wei.ai.utils.WLibPermissionsBiz;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -103,6 +108,7 @@ public class MainActivity extends Activity {
     private int CHECK_SUCCESS_COUNT = 0;
     private int CHECK_FAIL_COUNT = 0;
     private MyTimeTask mTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -179,13 +185,13 @@ public class MainActivity extends Activity {
             btn_setting.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    startActivity(new Intent(MainActivity.this, SettingActivity.class));
                 }
             });
             btn_search.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    startActivity(new Intent(MainActivity.this, SearchActivity.class));
                 }
             });
             btn_close.setOnClickListener(new View.OnClickListener() {
@@ -201,7 +207,7 @@ public class MainActivity extends Activity {
     }
 
     int count = 0;
-    private Bitmap bitmap;
+//    private Bitmap bitmap;
     private void initListener() {
         // 设置回调，回调人脸检测结果。
         faceDetectManager.setOnFaceDetectListener(new FaceDetectManager.OnFaceDetectListener() {
@@ -211,7 +217,7 @@ public class MainActivity extends Activity {
 
                 if (!isMatching) return;
 //                Log.e("MBAD", ""+(++count));
-                bitmap = Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
+                Bitmap bitmap = Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
                 checkFace(retCode, infos, frame);
                 showFrame(frame, infos);
             }
@@ -561,16 +567,14 @@ public class MainActivity extends Activity {
             if (score>=MATCH_SCORE) {
                 faceDetectManager.stop();
                 isMatching = false;
+                mHandler.removeCallbacks(checkRunnable);
                 mHandler.sendEmptyMessage(MSG_CHECK_RESULT_SUCCESS);
-
-
-
             } else {
                 if (System.currentTimeMillis() - onceStartTime > MAX_ONCE_CHECK_TIME) {
                     faceDetectManager.stop();
                     isMatching = false;
+                    mHandler.removeCallbacks(checkRunnable);
                     mHandler.sendEmptyMessage(MSG_CHECK_RESULT_FAIL);
-
                 }
             }
         } catch (Exception e){
@@ -858,6 +862,7 @@ public class MainActivity extends Activity {
         }
     }
 
+    private InfoBean mInfoBean;
     Handler h = new Handler(){
         public void handleMessage(android.os.Message msg) {
             if (msg.what == 99 || msg.what == 100) {
@@ -895,6 +900,7 @@ public class MainActivity extends Activity {
                 } else {
                     m_SecondPFInfo = "身份证无指纹 \n";
                 }
+                mInfoBean = null;
                 if (ic.getcertType() == " ") {
                     /*tv_info.setText("证件类型：身份证\n" + "姓名："
                             + ic.getPeopleName() + "\n" + "性别：" + ic.getSex()
@@ -906,18 +912,25 @@ public class MainActivity extends Activity {
                             + ic.getEndDate());*/
                             /*+ "\n" + m_FristPFInfo + "\n"
                             + m_SecondPFInfo);*/
-                            try {
-                                tv_name.setText(ic.getPeopleName());
-                                tv_sex.setText(ic.getSex());
-                                tv_num.setText(ic.getIDCard());
-                                tv_address.setText(ic.getAddr());
-                                tv_birthday.setText(df.format(ic.getBirthDay()));
-                                tv_date.setText(ic.getStrartDate()  + " - " + ic.getEndDate());
-                                tv_check_time.setText(sdf.format(new Date(System.currentTimeMillis())));
-
-                            } catch (Exception e){
-                                e.printStackTrace();
-                            }
+                    try {
+                        tv_name.setText(ic.getPeopleName());
+                        tv_sex.setText(ic.getSex());
+                        tv_num.setText(ic.getIDCard());
+                        tv_address.setText(ic.getAddr());
+                        tv_birthday.setText(df.format(ic.getBirthDay()));
+                        tv_date.setText(ic.getStrartDate()  + " - " + ic.getEndDate());
+                        tv_check_time.setText(sdf.format(new Date(System.currentTimeMillis())));
+                        mInfoBean = new InfoBean();
+                        mInfoBean.setName(ic.getPeopleName());
+                        mInfoBean.setSex(ic.getSex());
+                        mInfoBean.setCard(ic.getIDCard());
+                        mInfoBean.setAddress(ic.getAddr());
+                        mInfoBean.setBirthday(df.format(ic.getBirthDay()));
+                        mInfoBean.setDate(ic.getStrartDate() + "-" + ic.getEndDate());
+                        mInfoBean.setDepartment(ic.getDepartment());
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
 
                 } else {
                     if(ic.getcertType() == "J")
@@ -965,12 +978,33 @@ public class MainActivity extends Activity {
                     fis.close();
                     iv_photo.setImageBitmap(bmp);
                     isMatching = true;
+                    faceDetectManager.start();
                     tv_result.setText("正在检测...");
                     onceStartTime = System.currentTimeMillis();
                     matchScoreTv.setText("");
-
-                    faceDetectManager.start();
+                    mHandler.postDelayed(checkRunnable, MAX_ONCE_CHECK_TIME);
                     pickPhotoFeature(bmp);
+                    try {
+                        if (mInfoBean!=null) {
+                            InfoBean temp = DBHelper.getInstance().queryInfoData(BaseApplication.getInstance(), mInfoBean.getCard());
+                            if (temp==null) {
+                                //第一步:将Bitmap压缩至字节数组输出流ByteArrayOutputStream
+                                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                                bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                                //第二步:利用Base64将字节数组输出流中的数据转换成字符串String
+                                byte[] byteArray = byteArrayOutputStream.toByteArray();
+                                String imageString = new String(Base64.encodeToString(byteArray, Base64.DEFAULT));
+                                byteArrayOutputStream.close();
+                                mInfoBean.setHead(imageString);
+                                DBHelper.getInstance().insertObject(BaseApplication.getInstance(), mInfoBean, InfoBean.class);
+
+
+                            }
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
                 } catch (FileNotFoundException e) {
                     Toast.makeText(getApplicationContext(), "头像不存在！", Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
@@ -1005,6 +1039,20 @@ public class MainActivity extends Activity {
                 CHECK_FAIL_COUNT++;
                 tv_sb.setText(""+CHECK_FAIL_COUNT);
             }
+            if (mInfoBean==null) return;
+            try {
+                CheckDataBean bean = new CheckDataBean();
+                bean.setName(mInfoBean.getName());
+                bean.setCard_number(mInfoBean.getCard());
+                bean.setCreate_time(System.currentTimeMillis());
+                bean.setSex(mInfoBean.getSex());
+                bean.setStatus(isSuccess?1:0);
+                DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
+//                FileUtils.writeCheckData(mGson.toJson(bean));
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -1033,10 +1081,24 @@ public class MainActivity extends Activity {
         }
     }
 
+    private Runnable checkRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                faceDetectManager.stop();
+                isMatching = false;
+                showCheckResult(false);
+            } catch (Exception e){
+
+            }
+        }
+    };
+
     private boolean isExit = false;
     private static final int MSG_UPDATE_CURRENT_TIME = 254;
     private static final int MSG_CHECK_RESULT_SUCCESS = 255;
     private static final int MSG_CHECK_RESULT_FAIL = 256;
+
     private class MyTimeTask implements Runnable {
 
         private SimpleDateFormat sdf;
@@ -1058,4 +1120,15 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        try {
+            MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
+            CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
+            MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
+        } catch (Exception e){
+
+        }
+    }
 }

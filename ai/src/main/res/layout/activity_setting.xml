@@ -8,8 +8,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:background="#22ffffff"
-        android:paddingTop="30dp">
+        android:background="#22ffffff">
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -25,8 +24,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginLeft="160dp"
-        android:layout_marginRight="160dp"
+        android:layout_marginLeft="360dp"
+        android:layout_marginRight="360dp"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/ai_bg_body"
@@ -35,25 +34,27 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content" 
-            android:text="SDFSDFSDF"
+            android:text="激活序列号(不可更改)"
             android:textSize="@dimen/setting_setting_text_size"
-            android:textColor="@color/title_setting_text_color"/>
+            android:textColor="@color/title_setting_text_color"
+            android:layout_marginTop="15dp"/>
         <TextView
+            android:id="@+id/tv_key"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="sadfsdfsdfsdf"
+            android:text=""
             android:gravity="center_vertical"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:background="@drawable/ai_bg_other_detail"
+            android:background="@drawable/ai_bg_et"
             android:layout_marginTop="15dp"
             android:textSize="@dimen/et_setting_text_size"
-            android:textColor="@color/et_setting_text_color"/>
+            android:textColor="#ccc"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SDFSDFSDF"
+            android:text="合格分值"
             android:textSize="@dimen/setting_setting_text_size"
             android:textColor="@color/title_setting_text_color"
             android:layout_marginTop="25dp"/>
@@ -61,11 +62,11 @@
             android:id="@+id/et_score"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="sadfsdfsdfsdf"
+            android:text=""
             android:gravity="center_vertical"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:background="@drawable/ai_bg_other_detail"
+            android:background="@drawable/ai_bg_et"
             android:layout_marginTop="15dp"
             android:textSize="@dimen/et_setting_text_size"
             android:textColor="@color/et_setting_text_color"
@@ -73,7 +74,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SDFSDFSDF"
+            android:text="单次检测最大时长(单位：秒)"
             android:textSize="@dimen/setting_setting_text_size"
             android:textColor="@color/title_setting_text_color"
             android:layout_marginTop="25dp"/>
@@ -81,11 +82,11 @@
             android:id="@+id/et_check_time"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="sadfsdfsdfsdf"
+            android:text=""
             android:gravity="center_vertical"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:background="@drawable/ai_bg_other_detail"
+            android:background="@drawable/ai_bg_et"
             android:layout_marginTop="15dp"
             android:textSize="@dimen/et_setting_text_size"
             android:textColor="@color/et_setting_text_color"
@@ -94,7 +95,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SDFSDFSDF"
+            android:text="最小人脸(该值越小，检测距离越远，该值越大，检测性能越好,范围为80-200)"
             android:textSize="@dimen/setting_setting_text_size"
             android:textColor="@color/title_setting_text_color"
             android:layout_marginTop="25dp"/>
@@ -106,7 +107,7 @@
             android:gravity="center_vertical"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:background="@drawable/ai_bg_other_detail"
+            android:background="@drawable/ai_bg_et"
             android:layout_marginTop="15dp"
             android:textSize="@dimen/et_setting_text_size"
             android:textColor="@color/et_setting_text_color"
@@ -131,7 +132,7 @@
             android:textSize="32sp"
             android:background="@drawable/bg_btn_back"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="60dp"/>
+            android:layout_marginTop="25dp"/>
     </LinearLayout>
 
 </LinearLayout>

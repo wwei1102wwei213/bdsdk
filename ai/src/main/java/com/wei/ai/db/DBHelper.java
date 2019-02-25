@@ -1,14 +1,12 @@
 package com.wei.ai.db;
 
-import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.ta.TAApplication;
 import com.ta.util.db.TASQLiteDatabase;
-import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Administrator on 2016/3/30.
@@ -117,7 +115,72 @@ public class DBHelper {
         return null;
     }
 
+    public InfoBean queryInfoData(TAApplication application, String cardNum) {
+        try {
+            TASQLiteDatabase tasqLiteDatabase = application.getSQLiteDatabasePool().getSQLiteDatabase();
+            if (!tasqLiteDatabase.hasTable(InfoBean.class)) {
+                return null;
+            }
+            List<InfoBean> list = tasqLiteDatabase.query(InfoBean.class, false, "card="+cardNum, null, null, null, null);
+            InfoBean result = null;
+            if (list!=null&&list.size()>0) {
+                result = list.get(0);
+            }
+            application.getSQLiteDatabasePool().releaseSQLiteDatabase(tasqLiteDatabase);
+            return result;
+        } catch (Exception e){
+            Log.e("DBHelper", e.getMessage());
+        }
+        return null;
+    }
 
+    public List<CheckDataBean> queryCheckObject (TAApplication application, long createTime, long dayTime, String name, String card, int limit) {
+        try {
+            TASQLiteDatabase tasqLiteDatabase = application.getSQLiteDatabasePool().getSQLiteDatabase();
+            if (!tasqLiteDatabase.hasTable(CheckDataBean.class)) {
+                return null;
+            }
+            String where = "";
+            if (createTime!=0) {
+                where = "create_time<"+createTime;
+            }
+            if (dayTime!=0) {
+                where += " AND data_zero="+dayTime;
+            }
+            if (!TextUtils.isEmpty(name)) {
+                where += " AND name=" + name;
+            }
+            if (!TextUtils.isEmpty(card)) {
+                where += " AND card_number=" + card;
+            }
+            if (where.startsWith(" AND ")) {
+                where = where.substring(5, where.length());
+            }
+            List<CheckDataBean> list = tasqLiteDatabase.query(CheckDataBean.class, false, where,
+                    null, null, "create_time desc", ""+limit);
+            application.getSQLiteDatabasePool().releaseSQLiteDatabase(tasqLiteDatabase);
+            return list;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<CheckDataBean> queryCheckAll (TAApplication application) {
+        try {
+            TASQLiteDatabase tasqLiteDatabase = application.getSQLiteDatabasePool().getSQLiteDatabase();
+            if (!tasqLiteDatabase.hasTable(CheckDataBean.class)) {
+                return null;
+            }
+            List<CheckDataBean> list = tasqLiteDatabase.query(CheckDataBean.class, false, null,
+                    null, null, "create_time desc", "10");
+            application.getSQLiteDatabasePool().releaseSQLiteDatabase(tasqLiteDatabase);
+            return list;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     /**
      * 查询聊天记录
