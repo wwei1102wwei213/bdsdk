@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:background="@color/ai_base_all">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:background="#22ffffff"
+        android:paddingTop="30dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="查    询"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="60sp"
+            />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginLeft="160dp"
+        android:layout_marginRight="160dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/ai_bg_body"
+        android:padding="20dp">
+
+
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="300dp"
+            android:layout_height="72dp"
+            android:text="上一页"
+            android:textColor="@color/white"
+            android:textSize="32sp"
+            android:background="@drawable/bg_btn_sure"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="60dp"/>
+        <TextView
+            android:id="@+id/tv_page"
+            android:layout_width="120dp"
+            android:layout_height="72dp"
+            android:textSize="24sp"
+            android:text="第1页"
+            android:gravity="center"/>
+        <Button
+            android:id="@+id/btn_next"
+            android:layout_width="300dp"
+            android:layout_height="72dp"
+            android:text="下一页"
+            android:textColor="@color/white"
+            android:textSize="32sp"
+            android:background="@drawable/bg_btn_sure"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="60dp"/>
+
+    </LinearLayout>
+</LinearLayout>

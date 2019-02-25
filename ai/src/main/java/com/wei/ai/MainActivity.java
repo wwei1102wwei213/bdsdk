@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
             mTask = new MyTimeTask();
             mHandler.postDelayed(mTask, 30000);
         } catch (Exception e){
-            showToast(e.getMessage());
+            e.printStackTrace();
         }
         initPermissions();
     }

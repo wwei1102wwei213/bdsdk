@@ -6,4 +6,10 @@
     <dimen name="ai_menu_title_size">30sp</dimen>
     <dimen name="ai_menu_detail_size">30sp</dimen>
     <dimen name="line_size_other">3dp</dimen>
+    <dimen name="et_setting_text_size">28sp</dimen>
+    <dimen name="setting_setting_text_size">28sp</dimen>
+    <!--<color name="item_search_text_color">#333</color>
+    <color name="title_search_text_color">#333</color>-->
+    <dimen name="item_search_text_size">24sp</dimen>
+    <dimen name="title_search_text_size">24sp</dimen>
 </resources>
