@@ -59,7 +59,7 @@
 
             </Spinner>
         </LinearLayout>
-        <LinearLayout
+        <!--<LinearLayout
             android:orientation="horizontal"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -85,8 +85,8 @@
                 android:background="@drawable/ai_bg_et"
                 android:textSize="@dimen/et_setting_text_size"
                 android:textColor="#333"
-                android:inputType="number"/>
-        </LinearLayout>
+                android:inputType="text"/>
+        </LinearLayout>-->
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="0dp"

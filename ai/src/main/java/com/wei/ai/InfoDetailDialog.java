@@ -3,16 +3,19 @@ package com.wei.ai;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.media.Image;
-import android.os.Bundle;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wei.ai.db.InfoBean;
+
+import java.io.File;
+import java.io.FileInputStream;
 
 public class InfoDetailDialog extends Dialog{
 
@@ -25,26 +28,27 @@ public class InfoDetailDialog extends Dialog{
     public InfoDetailDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
         this.context = context;
+        initView();
     }
 
     private TextView tv;
     private ImageView iv;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.dialog_info_detail);
-        tv = findViewById(R.id.tv);
-        iv = findViewById(R.id.iv);
+    private void initView() {
+        View v = LayoutInflater.from(context).inflate(R.layout.dialog_info_detail, null);
+        setContentView(v);
+        tv = v.findViewById(R.id.tv);
+        iv = v.findViewById(R.id.iv);
+        /*try {
+            getWindow().setGravity(Gravity.CENTER);
+        } catch (Exception e){
+
+        }*/
+
     }
 
-    private void setData(InfoBean bean) {
+    public void setData(InfoBean bean) {
         try {
-            if (!TextUtils.isEmpty(bean.getHead())) {
-                Log.e("IDD", "头像不为空");
-            } else {
-                Log.e("IDD", "头像为空");
-            }
             tv.setText("姓名："
                     + bean.getName() + "\n" + "性别：" + bean.getSex()
                     + "\n" + "出生日期："
@@ -52,8 +56,15 @@ public class InfoDetailDialog extends Dialog{
                     + bean.getAddress() + "\n" + "身份号码：" + bean.getCard()
                     + "\n" + "签发机关：" + bean.getDepartment() + "\n"
                     + "有效期限：" + bean.getDate());
+            File temp = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/cardpic/"+bean.getCard()+".bmp");
+            if (temp.exists()) {
+                FileInputStream fis = new FileInputStream(temp);
+                Bitmap bmp = BitmapFactory.decodeStream(fis);
+                fis.close();
+                iv.setImageBitmap(bmp);
+            }
         } catch (Exception e){
-
+            Log.e("ITEM_S", e.getMessage());
         }
     }
 

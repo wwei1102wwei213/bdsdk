@@ -37,8 +37,8 @@ public class SearchAdapter extends BaseAdapter{
     }
 
     @Override
-    public CheckDataBean getItem(int i) {
-        return list.get(i);
+    public String getItem(int i) {
+        return list.get(i).getCard_number();
     }
 
     @Override

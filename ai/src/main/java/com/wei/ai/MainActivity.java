@@ -23,7 +23,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.TextureView;
@@ -63,7 +62,6 @@ import com.wei.ai.utils.GlobalFaceTypeModel;
 import com.wei.ai.utils.SPLongUtils;
 import com.wei.ai.utils.WLibPermissionsBiz;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -91,6 +89,7 @@ public class MainActivity extends Activity {
 
     private HsOtgApi api;
     private String filepath;
+    private String picPath;
     private MyHandler mHandler;
 
     private byte[] photoFeature = new byte[2048];
@@ -118,6 +117,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         try {
             filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wltlib";// 授权目录
+            picPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/cardpic";// 授权目录
             mHandler = new MyHandler(this);
             MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
             CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
@@ -197,13 +197,25 @@ public class MainActivity extends Activity {
             btn_close.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    System.exit(0);
+
+                    toExit();
                 }
             });
         } catch (Exception e){
-            showToast(e.getMessage());
+
         }
 
+    }
+
+    private void toExit(){
+        try {
+            isExit = true;
+            finish();
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(0);
+        }catch (Exception e){
+
+        }
     }
 
     int count = 0;
@@ -259,16 +271,25 @@ public class MainActivity extends Activity {
 
                 @Override
                 public void initSuccess() {
-                    dialog.dismiss();
-//                    dialog.setMessage("正在初始化设备");
-                    toast("初始化成功");
-//                    initMeition();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dialog.setMessage("正在初始化设备");
+                            mHandler.sendEmptyMessageDelayed(MSG_HIDE_LOADING, 5000);
+                        }
+                    });
                 }
 
                 @Override
                 public void initFail(int errorCode, String msg) {
-                    dialog.dismiss();
-                    toast("初始化失败:" + msg);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dialog.dismiss();
+                            tv_status.setText("初始化失败");
+                        }
+                    });
+
                 }
             });
 
@@ -278,7 +299,7 @@ public class MainActivity extends Activity {
 
         } catch (Exception e){
             e.printStackTrace();
-            showToast(e.getMessage());
+
         }
 
 //            sam.setText(api.GetSAMID());
@@ -349,9 +370,9 @@ public class MainActivity extends Activity {
             new Thread(new CPUThread()).start();
 
         } catch (Exception e){
-            showToast("initCamera=====>"+e.getMessage());
+
         }
-        dialog.dismiss();
+
 
     }
 
@@ -371,7 +392,7 @@ public class MainActivity extends Activity {
             // 如果不设置，人脸框会镜像，显示不准
             previewView.getTextureView().setScaleX(-1);
         } catch (Exception e){
-            showToast(e.getMessage());
+
         }
     }
 
@@ -487,7 +508,7 @@ public class MainActivity extends Activity {
             }
             asyncMath(photoFeature, faceInfo, imageFrame);
         } catch (Exception e){
-            showToast(e.getMessage());
+
         }
         return tip;
     }
@@ -734,7 +755,7 @@ public class MainActivity extends Activity {
             // 开始检测
 //            faceDetectManager.start();
         } catch (Exception e){
-            showToast(e.getMessage());
+
         }
 
     }
@@ -746,7 +767,7 @@ public class MainActivity extends Activity {
             // 结束检测。
             faceDetectManager.stop();
         } catch (Exception e){
-            showToast(e.getMessage());
+
         }
 
     }
@@ -760,19 +781,26 @@ public class MainActivity extends Activity {
             m_Auto = false;
             faceDetectManager.stop();
         } catch (Exception e){
-            showToast(e.getMessage());
+
         }
-        if (api == null) {
-            return;
-        }
-        api.unInit();
         try {
             if (mHandler!=null) {
                 mHandler.removeCallbacksAndMessages(null);
+                mHandler=null;
             }
         } catch (Exception e){
 
         }
+        try {
+            if (api != null) {
+                api.unInit();
+            }
+        } catch (Exception e){
+
+        }
+
+
+
     }
 
     private boolean m_Auto = false;
@@ -786,7 +814,7 @@ public class MainActivity extends Activity {
             HSIDCardInfo ici;
             Message msg;
             try {
-                while (m_Auto) {
+                while (!isExit&&m_Auto) {
                     try {
                         if (api.Authenticate(200, 200) != 1) {
                             msg = Message.obtain();
@@ -882,6 +910,7 @@ public class MainActivity extends Activity {
             }
             if (msg.what == HandlerMsg.READ_SUCCESS) {
 //                faceDetectManager.setUseDetect(false);
+                Log.e("ITEM_S", "读卡成功");
                 tv_status.setText("读卡成功");
                 HSIDCardInfo ic = (HSIDCardInfo) msg.obj;
                 byte[] fp = new byte[1024];
@@ -988,17 +1017,10 @@ public class MainActivity extends Activity {
                         if (mInfoBean!=null) {
                             InfoBean temp = DBHelper.getInstance().queryInfoData(BaseApplication.getInstance(), mInfoBean.getCard());
                             if (temp==null) {
-                                //第一步:将Bitmap压缩至字节数组输出流ByteArrayOutputStream
-                                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                                bmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-                                //第二步:利用Base64将字节数组输出流中的数据转换成字符串String
-                                byte[] byteArray = byteArrayOutputStream.toByteArray();
-                                String imageString = new String(Base64.encodeToString(byteArray, Base64.DEFAULT));
-                                byteArrayOutputStream.close();
-                                mInfoBean.setHead(imageString);
                                 DBHelper.getInstance().insertObject(BaseApplication.getInstance(), mInfoBean, InfoBean.class);
                                 FileUtils.writeInfoData(mInfoBean.toString());
                             }
+                            FileUtils.copyFile(filepath + "/zp.bmp", picPath+"/"+mInfoBean.getCard()+".bmp");
                         }
                     }catch (Exception e){
                         e.printStackTrace();
@@ -1072,6 +1094,8 @@ public class MainActivity extends Activity {
                 if (weak.get()==null) return;
                 if (msg.what == MSG_CHECK_RESULT_SUCCESS || msg.what == MSG_CHECK_RESULT_FAIL) {
                     weak.get().showCheckResult(msg.what==MSG_CHECK_RESULT_SUCCESS);
+                } else if (msg.what == MSG_HIDE_LOADING) {
+                    weak.get().hideLoading();
                 }
             } catch (Exception e){
                 Log.e("MAI", e.getMessage());
@@ -1093,8 +1117,18 @@ public class MainActivity extends Activity {
         }
     };
 
+    private void hideLoading() {
+        try {
+            tv_status.setText("初始化成功");
+            dialog.dismiss();
+        } catch (Exception e){
+
+        }
+
+    }
+
     private boolean isExit = false;
-    private static final int MSG_UPDATE_CURRENT_TIME = 254;
+    private static final int MSG_HIDE_LOADING = 254;
     private static final int MSG_CHECK_RESULT_SUCCESS = 255;
     private static final int MSG_CHECK_RESULT_FAIL = 256;
 
@@ -1129,5 +1163,10 @@ public class MainActivity extends Activity {
         } catch (Exception e){
 
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+
     }
 }

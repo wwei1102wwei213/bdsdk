@@ -142,17 +142,12 @@ public class DBHelper {
             }
             String where = "";
             if (dayTime!=0) {
-                where += " AND data_zero="+dayTime;
-            }
-            if (!TextUtils.isEmpty(name)) {
-                where += " AND name=" + name;
+                where = "data_zero="+dayTime;
             }
             if (!TextUtils.isEmpty(card)) {
-                where += " AND card_number=" + card;
+                where = where.length()>0?(where+" AND card_number like '%" + card+"%'"):("card_number like '%" + card+"%'");
             }
-            if (where.startsWith(" AND ")) {
-                where = where.substring(5, where.length());
-            }
+            Log.e("ITEM_S", where);
             List<CheckDataBean> list = tasqLiteDatabase.query(CheckDataBean.class, false, where,
                     null, null, "create_time desc", page+",10");
             application.getSQLiteDatabasePool().releaseSQLiteDatabase(tasqLiteDatabase);

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">人脸比对系统</string>
+    <string name="app_name">人证比对系统</string>
     <string name="ai_provider_authorities">com.wei.ai.fileprovider</string>
 
     <string name="hint_move_into_frame">把脸移入框内</string>

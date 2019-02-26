@@ -81,7 +81,7 @@ public class InfoBean {
                 ", \"birthday\":\"" + birthday + '\"' +
                 ", \"date\":\"" + date + '\"' +
                 ", \"address\":\"" + address + '\"' +
-                ", \"head\":\"" + head + '\"' +
+                ", \"head\":\"\"" +
                 ", \"department\":\"" + department + '\"' +
                 "}";
     }

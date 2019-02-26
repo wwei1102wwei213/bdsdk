@@ -14,7 +14,7 @@ public class CheckDataBean {
     }
 
     public void setCreate_time(long create_time) {
-        this.data_zero=create_time/(1000*3600*24)*(1000*3600*24)- TimeZone.getDefault().getRawOffset();
+        this.data_zero=create_time/(1000*3600*24L)*(1000*3600*24L)- TimeZone.getDefault().getRawOffset();
         this.create_time = create_time;
     }
 
