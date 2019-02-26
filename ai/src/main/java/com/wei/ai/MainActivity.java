@@ -58,6 +58,7 @@ import com.huashi.otg.sdk.Test;
 import com.wei.ai.db.CheckDataBean;
 import com.wei.ai.db.DBHelper;
 import com.wei.ai.db.InfoBean;
+import com.wei.ai.utils.FileUtils;
 import com.wei.ai.utils.GlobalFaceTypeModel;
 import com.wei.ai.utils.SPLongUtils;
 import com.wei.ai.utils.WLibPermissionsBiz;
@@ -129,7 +130,6 @@ public class MainActivity extends Activity {
             faceDetectManager = new FaceDetectManager(getApplicationContext());
             m_Auto = true;
             initViews();
-//            new Thread(new MyTimeTask()).start();
             mTask = new MyTimeTask();
             mHandler.postDelayed(mTask, 30000);
         } catch (Exception e){
@@ -997,8 +997,7 @@ public class MainActivity extends Activity {
                                 byteArrayOutputStream.close();
                                 mInfoBean.setHead(imageString);
                                 DBHelper.getInstance().insertObject(BaseApplication.getInstance(), mInfoBean, InfoBean.class);
-
-
+                                FileUtils.writeInfoData(mInfoBean.toString());
                             }
                         }
                     }catch (Exception e){
@@ -1048,7 +1047,7 @@ public class MainActivity extends Activity {
                 bean.setSex(mInfoBean.getSex());
                 bean.setStatus(isSuccess?1:0);
                 DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
-//                FileUtils.writeCheckData(mGson.toJson(bean));
+                FileUtils.writeCheckData(bean.toString());
             } catch (Exception e){
                 e.printStackTrace();
             }

@@ -37,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:background="@drawable/ao_bg_menu_top"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="15dp">
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="0dp"
@@ -125,7 +125,7 @@
         android:textSize="32sp"
         android:background="@drawable/ai_bg_search_bn"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginTop="15dp"/>
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -227,36 +227,37 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="wrap_content"
-        android:layout_height="72dp"
+        android:layout_height="66dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp">
+        android:layout_marginBottom="15dp">
         <Button
             android:id="@+id/btn_pre"
             android:layout_width="300dp"
-            android:layout_height="72dp"
+            android:layout_height="match_parent"
             android:text="上一页"
             android:textColor="@color/white"
             android:textSize="32sp"
             android:background="@drawable/bg_btn_sure"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="60dp"/>
+            />
         <TextView
             android:id="@+id/tv_page"
-            android:layout_width="120dp"
-            android:layout_height="72dp"
+            android:layout_width="140dp"
+            android:layout_height="match_parent"
             android:textSize="24sp"
-            android:text="第1页"
+            android:text="第 1 页"
+            android:textColor="@color/white"
             android:gravity="center"/>
         <Button
             android:id="@+id/btn_next"
             android:layout_width="300dp"
-            android:layout_height="72dp"
+            android:layout_height="match_parent"
             android:text="下一页"
             android:textColor="@color/white"
             android:textSize="32sp"
             android:background="@drawable/bg_btn_sure"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="60dp"/>
+            />
 
     </LinearLayout>
 </LinearLayout>

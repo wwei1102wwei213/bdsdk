@@ -57,4 +57,16 @@ public class CheckDataBean {
     public void setData_zero(long data_zero) {
         this.data_zero = data_zero;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"name\":\"" + name + '\"' +
+                ", \"sex\":\"" + sex + '\"' +
+                ", \"card_number\":\"" + card_number + '\"' +
+                ", \"create_time:" + create_time +
+                ", \"status\":" + status +
+                ", \"data_zero\":" + data_zero +
+                "}";
+    }
 }

@@ -3,6 +3,7 @@ package com.wei.ai;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -10,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wei.ai.db.CheckDataBean;
@@ -22,7 +24,7 @@ import java.util.TimeZone;
 
 public class SearchActivity extends Activity{
 
-    private int page = 1;
+    private int page = 0;
     private SearchAdapter adapter;
 
     @Override
@@ -38,6 +40,7 @@ public class SearchActivity extends Activity{
     private Spinner spinner;
     private long[] dates;
     private EditText et_name, et_card;
+    private TextView tv_page;
     private void initViews() {
         try {
             findViewById(R.id.btn_pre).setOnClickListener(new View.OnClickListener() {
@@ -58,9 +61,17 @@ public class SearchActivity extends Activity{
                     finish();
                 }
             });
+            findViewById(R.id.btn_search).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    toSearch();
+                }
+            });
 
             et_name = findViewById(R.id.et_name);
             et_card = findViewById(R.id.et_card_num);
+
+            tv_page = findViewById(R.id.tv_page);
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             dates = new long[30];
@@ -86,8 +97,6 @@ public class SearchActivity extends Activity{
 
     }
 
-    private long firstTime = 0;
-    private long lastTime = 0;
     private void initData() {
         try {
             List<CheckDataBean> beans = DBHelper.getInstance().queryCheckAll(BaseApplication.getInstance());
@@ -97,19 +106,76 @@ public class SearchActivity extends Activity{
         } catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
     private void toPre() {
-        if (page<=1) {
-            Toast.makeText(this, "当前已经是第一页", Toast.LENGTH_SHORT).show();
-            return;
+        try {
+            if (page==0) {
+                Toast.makeText(this, "当前已经是第一页", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            page--;
+            List<CheckDataBean> list = DBHelper.getInstance().queryCheckObject(
+                    BaseApplication.getInstance(), pos==0?0:dates[pos-1], name, cardNumber, page);
+            tv_page.setText("第 "+(page+1)+" 页");
+            adapter.update(list);
+        } catch (Exception e){
+            e.printStackTrace();
         }
-        page--;
-
     }
 
     private void toNext() {
+        try {
+            if (adapter.getCount()<10) {
+                Toast.makeText(this, "没有下一页了", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            page++;
+            List<CheckDataBean> list = DBHelper.getInstance().queryCheckObject(
+                    BaseApplication.getInstance(), pos==0?0:dates[pos-1], name, cardNumber, page);
+            if (list==null||list.size()==0) {
+                page--;
+                Toast.makeText(this, "没有下一页了", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                tv_page.setText("第 "+(page+1)+" 页");
+                adapter.update(list);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private String name, cardNumber;
+    private int pos;
+    private void toSearch() {
+        try {
+            pos = spinner.getSelectedItemPosition();
+            name = et_name.getText().toString();
+            cardNumber = et_card.getText().toString();
+            if (pos==0&&TextUtils.isEmpty(name)&&TextUtils.isEmpty(cardNumber)) {
+                Toast.makeText(this, "请选择查询条件", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            page = 0;
+            tv_page.setText("第 "+(page+1)+" 页");
+            List<CheckDataBean> list = DBHelper.getInstance().queryCheckObject(
+                    BaseApplication.getInstance(), pos==0?0:dates[pos-1], name, cardNumber, page);
+            adapter.update(list);
+        } catch (Exception e){
+
+        }
+    }
+
+    private void getList() {
+        try {
+            tv_page.setText("第 "+(page+1)+" 页");
+            List<CheckDataBean> list = DBHelper.getInstance().queryCheckObject(
+                    BaseApplication.getInstance(), pos==0?0:dates[pos-1], name, cardNumber, page);
+
+        } catch (Exception e){
+
+        }
 
     }
 }

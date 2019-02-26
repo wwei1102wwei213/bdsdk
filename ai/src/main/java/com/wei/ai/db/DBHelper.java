@@ -134,16 +134,13 @@ public class DBHelper {
         return null;
     }
 
-    public List<CheckDataBean> queryCheckObject (TAApplication application, long createTime, long dayTime, String name, String card, int limit) {
+    public List<CheckDataBean> queryCheckObject (TAApplication application, long dayTime, String name, String card, int page) {
         try {
             TASQLiteDatabase tasqLiteDatabase = application.getSQLiteDatabasePool().getSQLiteDatabase();
             if (!tasqLiteDatabase.hasTable(CheckDataBean.class)) {
                 return null;
             }
             String where = "";
-            if (createTime!=0) {
-                where = "create_time<"+createTime;
-            }
             if (dayTime!=0) {
                 where += " AND data_zero="+dayTime;
             }
@@ -157,7 +154,7 @@ public class DBHelper {
                 where = where.substring(5, where.length());
             }
             List<CheckDataBean> list = tasqLiteDatabase.query(CheckDataBean.class, false, where,
-                    null, null, "create_time desc", ""+limit);
+                    null, null, "create_time desc", page+",10");
             application.getSQLiteDatabasePool().releaseSQLiteDatabase(tasqLiteDatabase);
             return list;
         } catch (Exception e){

@@ -71,4 +71,18 @@ public class InfoBean {
     public void setHead(String head) {
         this.head = head;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"name\":\"" + name + '\"' +
+                ", \"sex\":\"" + sex + '\"' +
+                ", \"card\":\"" + card + '\"' +
+                ", \"birthday\":\"" + birthday + '\"' +
+                ", \"date\":\"" + date + '\"' +
+                ", \"address\":\"" + address + '\"' +
+                ", \"head\":\"" + head + '\"' +
+                ", \"department\":\"" + department + '\"' +
+                "}";
+    }
 }
