@@ -79,20 +79,15 @@ public class SearchActivity extends Activity{
 
             tv_page = findViewById(R.id.tv_page);
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             dates = new long[30];
             String[] args = new String[31];
             args[0] = "请选择时间";
             long now = System.currentTimeMillis();
-            Log.e("spinner", sdf.format(new Date(now)));
-            long zero = now/(1000*3600*24L)*(1000*3600*24L)- TimeZone.getDefault().getRawOffset();
-            Log.e("spinner", sdf.format(new Date(zero)));
-            Log.e("spinner", sdf.format(new Date(zero+TimeZone.getDefault().getRawOffset())));
+            long zero = (now+TimeZone.getDefault().getRawOffset())/(1000*3600*24L)*(1000*3600*24L)- TimeZone.getDefault().getRawOffset();
             for (int i=0;i<dates.length;i++) {
                 dates[i] = zero - i*24*3600*1000L;
-                Log.e("spinner", zero+"");
                 args[i+1] = sdf.format(new Date(dates[i]));
-            Log.e("spinner", args[i+1]+","+dates[i]);
             }
             spinner= (Spinner) findViewById(R.id.spinner);
             //创建ArrayAdapter对象
