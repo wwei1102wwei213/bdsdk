@@ -274,6 +274,7 @@ public class MainActivity extends Activity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+
                             dialog.setMessage("正在初始化设备");
                             mHandler.sendEmptyMessageDelayed(MSG_HIDE_LOADING, 5000);
                         }
@@ -367,7 +368,7 @@ public class MainActivity extends Activity {
             setCameraType(cameraImageSource);
             initListener();
             m_Auto = true;
-            new Thread(new CPUThread()).start();
+
 
         } catch (Exception e){
 
@@ -1121,6 +1122,7 @@ public class MainActivity extends Activity {
         try {
             tv_status.setText("初始化成功");
             dialog.dismiss();
+            new Thread(new CPUThread()).start();
         } catch (Exception e){
 
         }
