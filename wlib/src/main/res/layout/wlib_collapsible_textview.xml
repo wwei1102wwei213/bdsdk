@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#ffffff">
+
+    <TextView
+        android:id="@+id/desc_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:textColor="@color/wlib_collapsible_body"
+        android:lineSpacingExtra="1.5dp"
+        android:lineSpacingMultiplier="1.01"/>
+
+    <TextView
+        android:id="@+id/desc_op_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/desc_tv"
+        android:layout_marginTop="4dp"
+
+        android:layout_marginBottom="4dp"
+        android:gravity="center_vertical"
+        android:text="全文"
+        android:textColor="@color/wlib_collapsible_control"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+</RelativeLayout>

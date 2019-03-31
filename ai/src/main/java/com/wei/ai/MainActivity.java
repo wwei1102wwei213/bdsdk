@@ -14,7 +14,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.hardware.Camera;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,6 +31,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,7 +73,6 @@ import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -148,8 +148,27 @@ public class MainActivity extends Activity {
     private TextView tv_birthday, tv_date, tv_check_time, tv_address;
     private TextView tv_time, tv_gw, tv_hg, tv_sb;
     private TextView tv_result;
+    private TextView tv_loading_hint;
+    private ImageView iv_loading;
+    private ProgressBar pb_loading;
+    private View v_big_loading;
+    private ImageView iv_test;
     private void initViews() {
         try {
+            tv_loading_hint = findViewById(R.id.tv_loading_hint);
+            iv_loading = findViewById(R.id.iv_loading);
+            pb_loading = findViewById(R.id.pb_loading);
+            v_big_loading = findViewById(R.id.v_big_loading);
+
+            v_big_loading.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+
+            iv_test = findViewById(R.id.iv_test);
+
             tv_status = findViewById(R.id.tv_status);
             previewView = findViewById(R.id.preview_view);
             textureView = findViewById(R.id.texture_view);
@@ -230,6 +249,7 @@ public class MainActivity extends Activity {
                 if (!isMatching) return;
 //                Log.e("MBAD", ""+(++count));
                 Bitmap bitmap = Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
+
                 checkFace(retCode, infos, frame);
                 showFrame(frame, infos);
             }
@@ -340,13 +360,13 @@ public class MainActivity extends Activity {
             final CameraImageSource cameraImageSource = new CameraImageSource(this);
             // 图片越小检测速度越快，闸机场景640 * 480 可以满足需求。实际预览值可能和该值不同。和相机所支持的预览尺寸有关。
 //             可以通过 camera.getParameters().getSupportedPreviewSizes()查看支持列表。
-            Camera camera = Camera.open();
+            /*Camera camera = Camera.open();
             Camera.Parameters parameters = camera.getParameters();
             List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
             List<Camera.Size> supportedPictureSizes = parameters.getSupportedPictureSizes();
             for (Camera.Size size : supportedPreviewSizes) {
                 Log.e(TAG, "supportedPreviewSizes:"+size.width+","+size.height);
-            }
+            }*/
 
             cameraImageSource.getCameraControl().setPreferredPreviewSize(dip2px(this, 480), dip2px(this, 640));
 //            cameraImageSource.getCameraControl().setPreferredPreviewSize(360, 400);
@@ -469,8 +489,11 @@ public class MainActivity extends Activity {
         });
     }
 
+
+
     private String filter(FaceInfo faceInfo, ImageFrame imageFrame) {
         if (!isMatching) return "";
+
         String tip = "";
         try {
             if (faceInfo.mConf < 0.6) {
@@ -584,11 +607,13 @@ public class MainActivity extends Activity {
         }
         matching = false;
         if (!isMatching) return;
+
         displayTip( ""+score, matchScoreTv);
         try {
             if (score>=MATCH_SCORE) {
                 faceDetectManager.stop();
                 isMatching = false;
+                mImageFrame = imageFrame;
                 mHandler.removeCallbacks(checkRunnable);
                 mHandler.sendEmptyMessage(MSG_CHECK_RESULT_SUCCESS);
             } else {
@@ -817,25 +842,29 @@ public class MainActivity extends Activity {
             try {
                 while (!isExit&&m_Auto) {
                     try {
-                        if (api.Authenticate(200, 200) != 1) {
-                            msg = Message.obtain();
-                            msg.what = HandlerMsg.READ_ERROR;
-                            h.sendMessage(msg);
-                        } else {
-                            ici = new HSIDCardInfo();
-                            if (api.ReadCard(ici, 200, 1300) == 1) {
+                        if (!isMatching) {
+                            if (api.Authenticate(200, 200) != 1) {
                                 msg = Message.obtain();
-                                msg.obj = ici;
-                                msg.what = HandlerMsg.READ_SUCCESS;
+                                msg.what = HandlerMsg.READ_ERROR;
                                 h.sendMessage(msg);
+                            } else {
+                                ici = new HSIDCardInfo();
+                                if (api.ReadCard(ici, 200, 1300) == 1) {
+                                    msg = Message.obtain();
+                                    msg.obj = ici;
+                                    msg.what = HandlerMsg.READ_SUCCESS;
+                                    h.sendMessage(msg);
+                                }
                             }
                         }
                         SystemClock.sleep(300);
                     } catch (Exception e){
-                        msg = Message.obtain();
-                        msg.what = 188;
-                        h.sendMessage(msg);
-                        m_Auto = false;
+                        if (!isMatching) {
+                            msg = Message.obtain();
+                            msg.what = 188;
+                            h.sendMessage(msg);
+                            m_Auto = false;
+                        }
                     }
                 }
             } catch (Exception e){
@@ -843,9 +872,6 @@ public class MainActivity extends Activity {
                 msg.what = 188;
                 h.sendMessage(msg);
             }
-
-
-
         }
     }
 
@@ -914,22 +940,7 @@ public class MainActivity extends Activity {
                 Log.e("ITEM_S", "读卡成功");
                 tv_status.setText("读卡成功");
                 HSIDCardInfo ic = (HSIDCardInfo) msg.obj;
-                byte[] fp = new byte[1024];
-                fp = ic.getFpDate();
-                String m_FristPFInfo = "";
-                String m_SecondPFInfo = "";
 
-                if (fp[4] == (byte)0x01) {
-                    m_FristPFInfo = String.format("指纹  信息：第一枚指纹注册成功。指位：%s。指纹质量：%d \n", GetFPcode(fp[5]), fp[6]);
-                } else {
-                    m_FristPFInfo = "身份证无指纹 \n";
-                }
-                if (fp[512 + 4] == (byte)0x01) {
-                    m_SecondPFInfo = String.format("指纹  信息：第二枚指纹注册成功。指位：%s。指纹质量：%d \n", GetFPcode(fp[512 + 5]),
-                            fp[512 + 6]);
-                } else {
-                    m_SecondPFInfo = "身份证无指纹 \n";
-                }
                 mInfoBean = null;
                 if (ic.getcertType() == " ") {
                     /*tv_info.setText("证件类型：身份证\n" + "姓名："
@@ -1010,6 +1021,10 @@ public class MainActivity extends Activity {
                     isMatching = true;
                     faceDetectManager.start();
                     tv_result.setText("正在检测...");
+                    tv_loading_hint.setText("正在检测...");
+                    iv_loading.setVisibility(View.GONE);
+                    pb_loading.setVisibility(View.VISIBLE);
+                    v_big_loading.setVisibility(View.VISIBLE);
                     onceStartTime = System.currentTimeMillis();
                     matchScoreTv.setText("");
                     mHandler.postDelayed(checkRunnable, MAX_ONCE_CHECK_TIME);
@@ -1050,16 +1065,35 @@ public class MainActivity extends Activity {
         }
     }
 
+    private ImageFrame mImageFrame;
     private void showCheckResult(boolean isSuccess) {
         try {
             if (isSuccess) {
                 tv_result.setText("检测成功");
                 CHECK_SUCCESS_COUNT++;
                 tv_hg.setText(""+CHECK_SUCCESS_COUNT);
+                tv_loading_hint.setText("检测成功");
+                iv_loading.setImageResource(R.drawable.ai_success);
+                iv_loading.setVisibility(View.VISIBLE);
+                pb_loading.setVisibility(View.GONE);
+                try {
+                    Log.e("MAI", ""+mImageFrame.getArgb().length);
+                    /*Bitmap bmp = Bitmap.createBitmap(mImageFrame.getArgb(), 0, mImageFrame.getWidth(), mImageFrame.getWidth(), mImageFrame.getHeight(),
+                            Bitmap.Config.ARGB_8888);*/
+
+//                    iv_test.setImageBitmap(bmp);
+                } catch (Exception e){
+
+                }
+
             } else {
                 tv_result.setText("检测失败");
                 CHECK_FAIL_COUNT++;
                 tv_sb.setText(""+CHECK_FAIL_COUNT);
+                tv_loading_hint.setText("检测失败");
+                iv_loading.setImageResource(R.drawable.ai_fail);
+                iv_loading.setVisibility(View.VISIBLE);
+                pb_loading.setVisibility(View.GONE);
             }
             if (mInfoBean==null) return;
             try {
@@ -1074,7 +1108,19 @@ public class MainActivity extends Activity {
             } catch (Exception e){
                 e.printStackTrace();
             }
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (!matching) {
+                            v_big_loading.setVisibility(View.GONE);
+                        }
+                    } catch (Exception e) {
 
+                    }
+
+                }
+            }, 2500);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -1118,10 +1164,12 @@ public class MainActivity extends Activity {
         }
     };
 
+    private boolean INIT_FLAG = false;
     private void hideLoading() {
         try {
             tv_status.setText("初始化成功");
             dialog.dismiss();
+            INIT_FLAG = true;
             new Thread(new CPUThread()).start();
         } catch (Exception e){
 
@@ -1170,5 +1218,20 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
 
+    }
+
+    public static Bitmap getBitmapFromView(View v) {
+        Bitmap b = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.RGB_565);
+        Canvas c = new Canvas(b);
+        v.layout(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
+        // Draw background
+        Drawable bgDrawable = v.getBackground();
+        if (bgDrawable != null)
+            bgDrawable.draw(c);
+        else
+            c.drawColor(Color.WHITE);
+        // Draw view to canvas
+        v.draw(c);
+        return b;
     }
 }

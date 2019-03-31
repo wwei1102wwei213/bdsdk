@@ -8,6 +8,7 @@
 
     <color name="ai_base_all">#303F9F</color>
     <color name="ai_base_bg">#3F51B5</color>
+    <color name="ai_base_bg_half">#a03F51B5</color>
     <color name="ai_bg_footer">#3F51B5</color>
     <color name="ai_bg_menu">#30669F</color>
 
@@ -18,6 +19,8 @@
     <color name="other_text_color">#333</color>
     <color name="et_setting_text_color">#FF4081</color>
     <color name="title_setting_text_color">#333</color>
+
+    <color name="text_red">#cc0000</color>
 
     <color name="item_search_text_color">#333</color>
     <color name="title_search_text_color">#333</color>

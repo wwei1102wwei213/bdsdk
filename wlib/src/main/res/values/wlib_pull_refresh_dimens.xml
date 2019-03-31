@@ -1,0 +1,10 @@
+<resources>
+
+    <dimen name="picture_pull_to_refresh_last_update_time_top_margin">6dp</dimen>
+    <dimen name="picture_pull_to_refresh_footer_height">40dp</dimen>
+
+    <!-- 下拉刷新字体 -->
+    <dimen name="picture_pull_to_refresh_loading_text_size">14sp</dimen>
+    <dimen name="picture_pull_to_refresh_last_update_time_text_size">10sp</dimen>
+
+</resources>

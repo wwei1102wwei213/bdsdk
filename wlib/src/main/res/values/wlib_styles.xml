@@ -1,0 +1,104 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:buttonStyle">?android:attr/borderlessButtonStyle</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowNoTitle">true</item> <!-- 无标题 -->
+        <item name="android:windowContentOverlay">@null</item>
+        <!--<item name="android:backgroundDimEnabled">false</item>&lt;!&ndash; 半透明 &ndash;&gt;
+        <item name="android:windowIsTranslucent">true</item>-->
+    </style>
+
+    <style name="SplashAppTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/wlib_base_bg_splash</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <!--<item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowEnterAnimation">@null</item>
+        <item name="android:windowExitAnimation">@null</item>-->
+    </style>
+
+    <style name="TranslucentAppTheme" parent="AppTheme">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <!--<item name="android:windowIsTranslucent">true</item>-->
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!--书城小版块布局样式-->
+    <style name="bc_category_style">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">#ffffff</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+    </style>
+
+
+    <!-- 对话框样式 -->
+    <style name="wlib_dialog_base_style" parent="android:style/Theme.Dialog">
+        <!-- Dialog的windowFrame框为无-->
+        <item name="android:windowFrame">@null</item>
+        <!-- 是否不显示标题-->
+        <item name="android:windowNoTitle">true</item>
+        <!-- 是否浮现在activity之上,在屏幕中间显示-->
+        <item name="android:windowIsFloating">true</item>
+        <!-- 是否半透明-->
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- 外面点击关闭-->
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <!-- 窗口背景颜色-->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 去除顶部阴影 -->
+        <item name="android:windowContentOverlay">@null</item>
+        <!-- dialog暗淡背景浮层-->
+        <item name="android:backgroundDimEnabled">true</item>
+        <!-- 进出动画-->
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+    </style>
+
+    <style name="wlib_dialog_style_transparent" parent="wlib_dialog_base_style">
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="custom_dialog_translucent" parent="wlib_dialog_base_style">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="wlib_custom_dialog_update" parent="wlib_dialog_base_style">
+        <!--<item name="android:windowBackground">@drawable/wlib_update_dialog_background</item>-->
+    </style>
+
+    <style name="custom_dialog_bottom" parent="wlib_dialog_base_style">
+        <item name="android:windowAnimationStyle">@style/custom_animation_up_down</item>
+    </style>
+
+    <!-- 动画样式-->
+    <style name="custom_animation_up_down" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/wlib_pop_up_in</item>
+        <item name="android:windowExitAnimation">@anim/wlib_pop_down_out</item>
+    </style>
+
+    <style name="radiobutton_main_bottom_btn">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:button">@null</item>
+        <item name="android:textColor">@color/wlib_tab_text_selector</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:drawablePadding">2dp</item>
+    </style>
+
+
+</resources>

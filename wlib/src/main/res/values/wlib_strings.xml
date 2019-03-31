@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">DJ</string>
+    <string name="wlib_action_settings">Settings</string>
+
+    <string name="wlib_provider_authorities">com.wei.henc.fileprovider</string>
+
+    <string name="wlib_tab_text_recommend">菜单2</string>
+    <string name="wlib_tab_text_bookcity">菜单3</string>
+    <string name="wlib_tab_text_bookshelf">菜单1</string>
+    <string name="wlib_tab_text_me">我的</string>
+
+    <string name="wlib_request_authorize_ok">授权成功</string>
+    <string name="wlib_request_authorize_cancel">授权取消</string>
+    <string name="wlib_request_authorize_refused">授权拒绝</string>
+    <string name="wlib_request_authorize_failed">授权失败</string>
+
+    <string name="wlib_msg_double_back_exit">再按一次退出</string>
+    <string name="wlib_msg_delete">删除</string>
+    <string name="wlib_msg_cancel">取消</string>
+    <string name="wlib_msg_finish">完成</string>
+    <string name="wlib_msg_ok">确定</string>
+    <string name="wlib_msg_check_all">全选</string>
+
+    <string name="wlib_msg_last_update_time">最后更新时间：%s</string>
+
+    <string name="wlib_download_start">开始</string>
+    <string name="wlib_download_watting">等待</string>
+    <string name="wlib_download_restart">继续</string>
+    <string name="wlib_download_pauseed">暂停</string>
+    <string name="wlib_download_finish">完成</string>
+
+    <string name="wlib_download_status_nostart">未开始</string>
+    <string name="wlib_download_status_watting">等待中</string>
+    <string name="wlib_download_status_pauseed">已暂停</string>
+    <string name="wlib_download_status_downloading">正在缓存</string>
+    <string name="wlib_download_status_finish">已完成</string>
+
+
+    <string name="wlib_no_internet">当前网络不可用，请检查网络设置</string>
+    <string name="wlib_network_error">网络异常</string>
+
+    <string name="wlib_downloading_apk">正在后台下载...</string>
+    <string name="wlib_not_find_sdcard">找不到存储路径</string>
+
+    <string name="wlib_full_text">全文</string>
+    <string name="wlib_collapse_text">收起</string>
+
+    <!--adapter-->
+    <string name="cc_adapter_holder_tag_key">cc_adapter_holder_tag_key</string>
+    <string name="cc_adapter_holder_index_tag_key">cc_adapter_holder_index_tag_key</string>
+
+</resources>

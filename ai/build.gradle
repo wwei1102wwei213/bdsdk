@@ -30,7 +30,7 @@ android {
             keyPassword 'android'
         }
     }
-
+//123456,12345679
     buildTypes {
         release {
             minifyEnabled false
@@ -74,12 +74,14 @@ dependencies {
     compile project(path: ':iminect')
     implementation files('libs/OTG.jar')
     /*implementation 'com.android.support.constraint:constraint-layout:1.1.2'
-        compile fileTree(include: ['*.jar'], dir: 'libs')
-        compile 'com.android.support:appcompat-v7:26+'
-        compile 'com.android.support:recyclerview-v7:26+'
-        compile project(path: ':library')
-        compile project(path: ':orbbec')
-        compile project(path: ':iminect')*/
+            compile fileTree(include: ['*.jar'], dir: 'libs')
+            compile 'com.android.support:appcompat-v7:26+'
+            compile 'com.android.support:recyclerview-v7:26+'
+            compile project(path: ':library')
+            compile project(path: ':orbbec')
+            compile project(path: ':iminect')*/
     implementation files('libs/thinkandroid-1.1-bin.jar')
     implementation 'com.google.code.gson:gson:2.8.1'
+    implementation 'com.zhy:okhttputils:2.6.2'
+    implementation project(':wlib')
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#23B382</color>
+    <color name="colorPrimaryDark">#23B382</color>
+    <color name="colorAccent">#23B382</color>
+    <!--<color name="actionbar_default">#ff730b</color>-->
+    <!--主色调-->
+    <color name="wlib_base_all">#23B382</color>
+    <!--主色调按压-->
+    <color name="wlib_base_all_press">#239882</color>
+    <!--主色调-->
+    <color name="wlib_base_all_enable">#3323B382</color>
+    <!--主色调透明度-->
+    <color name="wlib_base_half_color">#3323B382</color>
+    <!--主色调透明度深色-->
+    <color name="wlib_base_half_color_dip">#6623B382</color>
+
+    <!--黑色半透明-->
+    <color name="wlib_half_translucent">#40000000</color>
+
+    <!--白色组色-->
+    <color name="wlib_white">#FFFFFF</color>
+    <color name="wlib_white_half">#80FFFFFF</color>
+    <color name="wlib_line_eee">#eeeeee</color>
+    <color name="wlib_line_ddd">#dddddd</color>
+
+    <color name="wlib_progress_selected">#0c8f62</color>
+    <color name="wlib_progress_unselected">#81d7ba</color>
+
+    <color name="wlib_invite_normal_text">#666666</color>
+
+    <color name="wlib_black_overlay">#66000000</color>
+
+
+    <color name="ads_card_text">#B4854D</color>
+    <color name="base_invite_normal_text">#666666</color>
+
+    <!--CollapsibleTextView-->
+    <color name="wlib_collapsible_body">#222222</color>
+    <color name="wlib_collapsible_control">#666666</color>
+
+    <!--TabLayout-->
+    <color name="wlib_tab_layout_selected">#23B382</color>
+</resources>

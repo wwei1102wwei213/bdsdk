@@ -1,0 +1,9 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="wlib_actionbar_height">44dp</dimen>
+    <dimen name="wlib_actionbar_height_half">22dp</dimen>
+    <dimen name="wlib_popwindow_del_height">60dp</dimen>
+    <dimen name="wlib_fragment_recommend_height">90dp</dimen>
+
+
+</resources>

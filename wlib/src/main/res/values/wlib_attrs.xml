@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="CircleImageView">
+        <attr name="border_width" format="dimension" />
+        <attr name="border_color" format="color" />
+        <attr name="border_overlay" format="boolean" />
+    </declare-styleable>
+    <!--圆角头像-->
+    <declare-styleable name="SettingScrollerView">
+        <attr name="visibility_height" format="dimension" />
+    </declare-styleable>
+    <!--自定义阴影控件-->
+    <declare-styleable name="ShadowCardView">
+        <attr name="body_percent_width" format="float"/>
+        <attr name="body_percent_height" format="float"/>
+        <attr name="image_percent_width" format="float"/>
+        <attr name="image_percent_height" format="float"/>
+        <attr name="space_dimen_width" format="dimension"/>
+        <attr name="space_dimen_height" format="dimension"/>
+        <attr name="space_dimen" format="dimension"/>
+    </declare-styleable>
+
+    <!--滑动选择器-->
+    <declare-styleable name="WheelView">
+        <attr name="itemVisibleNum" format="integer"/>
+
+        <attr name="textColorOuter" format="color" />
+        <attr name="textSizeOuter" format="dimension" />
+        <attr name="textColorCenter" format="color" />
+        <attr name="textSizeCenter" format="dimension" />
+
+        <attr name="lineColor" format="color" />
+
+        <attr name="isLoop" format="boolean"/>
+        <attr name="lineSpaceingDimens" format="dimension"/>
+
+        <attr name="wheelGravity" format="enum" >
+            <enum name="left" value="234"/>
+            <enum name="center" value="354"/>
+            <enum name="right" value="894"/>
+        </attr>
+
+    </declare-styleable>
+
+    <declare-styleable name="PetalView">
+        <attr name="petal_checked" format="boolean" />
+        <attr name="petal_checked_color" format="color" />
+        <attr name="petal_color" format="color" />
+        <attr name="corner_angle" format="float"/>
+        <attr name="center_direction" format="enum">
+            <enum name="topLeft" value="0"/>
+            <enum name="topRight" value="1"/>
+            <enum name="bottomLeft" value="2"/>
+            <enum name="bottomRight" value="3"/>
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="topic_progress">
+        <attr name="color_bottom" format="color"/>
+        <attr name="color_top" format="color"/>
+        <attr name="color" format="color"/>
+    </declare-styleable>
+
+    <declare-styleable name="italic_tv">
+        <attr name="degree" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="votes_view">
+        <attr name="drawable_img" format="reference" />
+        <attr name="bottom_color" format="color" />
+        <attr name="top_color" format="color"/>
+        <attr name="text_size" format="dimension"/>
+        <attr name="text_color" format="color"/>
+        <attr name="text" format="string"/>
+    </declare-styleable>
+
+    <declare-styleable name="votes">
+        <attr name="drawable_image" format="reference" />
+        <attr name="left_color" format="color" />
+        <attr name="right_color" format="color"/>
+        <attr name="textSize" format="dimension"/>
+        <attr name="textColor" format="color"/>
+        <attr name="left_text" format="string"/>
+        <attr name="right_text" format="string"/>
+        <attr name="left_width" format="dimension" />
+        <attr name="right_width" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="FlowLayout">
+        <attr name="horizontal_spacing" format="dimension" />
+        <attr name="vertical_spacing" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="SyncViewPager">
+        <attr name="velocity" format="integer"/>
+    </declare-styleable>
+
+</resources>

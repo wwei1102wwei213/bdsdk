@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#cccccc"/>
+
+    <RadioGroup
+        android:id="@+id/tab_rg_bar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ffffff"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="2dp">
+
+        <!--<RadioButton
+            android:id="@+id/tab_rb_bookshelf"
+            style="@style/radiobutton_main_bottom_btn"
+            android:drawableTop="@drawable/base_tab_selector_1"
+            android:text="@string/tab_text_bookshelf"/>
+        <RadioButton
+            android:id="@+id/tab_rb_recommend"
+            style="@style/radiobutton_main_bottom_btn"
+            android:drawableTop="@drawable/base_tab_selector_2"
+            android:text="@string/tab_text_recommend"/>
+
+        <RadioButton
+            android:id="@+id/tab_rb_bookcity"
+            style="@style/radiobutton_main_bottom_btn"
+            android:drawableTop="@drawable/base_tab_selector_3"
+            android:text="@string/tab_text_bookcity"/>
+
+        <RadioButton
+            android:id="@+id/tab_rb_me"
+            style="@style/radiobutton_main_bottom_btn"
+            android:drawableTop="@drawable/base_tab_selector_4"
+            android:text="@string/tab_text_me"/>-->
+
+    </RadioGroup>
+</LinearLayout>
