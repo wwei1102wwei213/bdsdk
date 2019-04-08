@@ -36,7 +36,7 @@ public class HttpRespBiz extends WLibDefaultHttpBiz {
     @Override
     protected void changeBaseUrl(String baseUrl) {
         HttpFlag.BASE_URL = baseUrl;
-        HttpFlag.changeBaseUrl();
+//        HttpFlag.changeBaseUrl();
     }
 
     @Override
@@ -52,29 +52,11 @@ public class HttpRespBiz extends WLibDefaultHttpBiz {
     protected String postUrl() {
         String result = null;
         switch (flag) {
-            case HttpFlag.FLAG_ATTENDANCE:
-                result = HttpFlag.URL_ATTENDANCE;
+            case HttpFlag.FLAG_INSERT_ATTENDANCE:
+                result = HttpFlag.URL_INSERT_ATTENDANCE;
                 break;
-            case HttpFlag.FLAG_LOGIN:
-                result = HttpFlag.URL_LOGIN;
-                break;
-            case HttpFlag.FLAG_SEARCH_NAME_FOR_SAFE:
-                result = HttpFlag.URL_SEARCH_NAME_FOR_SAFE;
-                break;
-            case HttpFlag.FLAG_SEARCH_NAME_FOR_UNSAFE:
-                result = HttpFlag.URL_SEARCH_NAME_FOR_UNSAFE;
-                break;
-            case HttpFlag.FLAG_SEARCH_FACE_FOR_SAFE:
-                result = HttpFlag.URL_SEARCH_FACE_FOR_SAFE;
-                break;
-            case HttpFlag.FLAG_SEARCH_FACE_FOR_UNSAFE:
-                result = HttpFlag.URL_SEARCH_FACE_FOR_UNSAFE;
-                break;
-            case HttpFlag.FLAG_INSERT_VIOLATION_INFO:
-                result = HttpFlag.URL_INSERT_VIOLATION_INFO;
-                break;
-            case HttpFlag.FLAG_SEARCH_VIOLATION_BY_PAGE:
-                result = HttpFlag.URL_SEARCH_VIOLATION_BY_PAGE;
+            case HttpFlag.FLAG_GET_ATTENDANCE_NUM:
+                result = HttpFlag.URL_GET_ATTENDANCE_NUM;
                 break;
 
         }

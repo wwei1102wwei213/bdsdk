@@ -46,7 +46,7 @@
         <TextView
             android:id="@+id/tv_time"
             android:layout_width="0dp"
-            android:layout_weight="3"
+            android:layout_weight="2"
             android:layout_height="wrap_content"
             android:textSize="@dimen/ai_top_text_size"
             android:textColor="@color/ai_top_style_text_color"
@@ -56,20 +56,20 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="岗位:"
+            android:text="签到单号:"
             android:textSize="@dimen/ai_top_text_size"
             android:textColor="@color/ai_top_style_text_color"
             />
         <TextView
             android:id="@+id/tv_gw"
             android:layout_width="0dp"
-            android:layout_weight="2"
+            android:layout_weight="3"
             android:layout_height="wrap_content"
             android:textSize="@dimen/ai_top_text_size"
             android:textColor="@color/ai_top_style_text_color"
             android:paddingLeft="10dp"
             android:paddingRight="20dp"
-            android:text="默认岗位"/>
+            android:text=""/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -543,8 +543,8 @@
                 android:gravity="center"/>
         </RelativeLayout>
     </RelativeLayout>
-    <ImageView
+    <!--<ImageView
         android:id="@+id/iv_test"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content" />-->
 </RelativeLayout>

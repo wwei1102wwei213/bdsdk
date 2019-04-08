@@ -5,7 +5,6 @@ import com.google.gson.JsonSyntaxException;
 import com.wei.wlib.util.WLibLog;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.builder.GetBuilder;
-import com.zhy.http.okhttp.builder.PostFormBuilder;
 import com.zhy.http.okhttp.builder.PostStringBuilder;
 
 import org.json.JSONException;
@@ -92,7 +91,7 @@ public class WLibDefaultHttpBiz implements IWLibHttpBiz {
         builder.tag(OkTag).build().execute(new WLibStringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-//                WLibLog.h("请求地址："+currentUrl+",FLAG:"+flag + ",错误信息:"+e.getMessage()+",请求参数："+mGson.toJson(params));
+                WLibLog.h("请求地址："+currentUrl+",FLAG:"+flag + ",错误信息:"+e.getMessage()+",请求参数："+mGson.toJson(params));
                 if (checkUrl) {
                     if (urls==null) {
                         urls = getBaseUrls();
@@ -118,7 +117,7 @@ public class WLibDefaultHttpBiz implements IWLibHttpBiz {
 
             @Override
             public void onResponse(String response, int id) {
-//                WLibLog.h("请求地址："+currentUrl+"(POST)\n请求参数："+mGson.toJson(params)+ "\n请求数据："+response);
+                WLibLog.h("请求地址："+currentUrl+"\n请求数据："+response+"(POST)\n请求参数："+mGson.toJson(params));
                 if (checkUrl&&IsChangeBase) {
                     changeBaseUrl(currentBaseUrl);
                     if (callback!=null) callback.handleError(flag, tag, WLibHttpFlag.HTTP_ERROR_BASE_URL_CHANGED, currentBaseUrl, null);
@@ -145,7 +144,7 @@ public class WLibDefaultHttpBiz implements IWLibHttpBiz {
         builder.tag(OkTag).build().execute(new WLibStringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                WLibLog.h("请求地址："+currentUrl+",FLAG:"+flag + ",错误信息:"+e.getMessage()+",请求参数："+mGson.toJson(params));
+//                WLibLog.h("请求地址："+currentUrl+",FLAG:"+flag + ",错误信息:"+e.getMessage()+",请求参数："+mGson.toJson(params));
                 if (checkUrl) {
                     if (urls==null) {
                         urls = getBaseUrls();
@@ -171,7 +170,7 @@ public class WLibDefaultHttpBiz implements IWLibHttpBiz {
 
             @Override
             public void onResponse(String response, int id) {
-                WLibLog.h("请求地址："+currentUrl+"(GET)\n请求参数："+mGson.toJson(params)+ "\n请求数据："+response);
+//                WLibLog.h("请求地址："+currentUrl+"(GET)\n请求参数："+mGson.toJson(params)+ "\n请求数据："+response);
                 if (checkUrl&&IsChangeBase) {
                     changeBaseUrl(currentBaseUrl);
                     if (callback!=null) callback.handleError(flag, tag, WLibHttpFlag.HTTP_ERROR_BASE_URL_CHANGED, currentBaseUrl, null);

@@ -2,8 +2,10 @@ package com.wei.ai;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -23,6 +25,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.TextureView;
@@ -51,17 +54,23 @@ import com.baidu.aip.utils.FeatureUtils;
 import com.baidu.aip.utils.PreferencesUtil;
 import com.baidu.idl.facesdk.FaceInfo;
 import com.baidu.idl.facesdk.FaceTracker;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.huashi.otg.sdk.HSIDCardInfo;
 import com.huashi.otg.sdk.HandlerMsg;
 import com.huashi.otg.sdk.HsOtgApi;
 import com.huashi.otg.sdk.Test;
+import com.wei.ai.biz.Factory;
+import com.wei.ai.biz.HttpFlag;
 import com.wei.ai.db.CheckDataBean;
 import com.wei.ai.db.DBHelper;
 import com.wei.ai.db.InfoBean;
 import com.wei.ai.utils.FileUtils;
 import com.wei.ai.utils.GlobalFaceTypeModel;
+import com.wei.ai.utils.MyUtils;
 import com.wei.ai.utils.SPLongUtils;
 import com.wei.ai.utils.WLibPermissionsBiz;
+import com.wei.wlib.http.WLibHttpListener;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,11 +82,14 @@ import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements WLibHttpListener{
 
     private static final String TAG = "BD_AI";
     private static final int PICK_PHOTO = 100;
@@ -118,6 +130,19 @@ public class MainActivity extends Activity {
         try {
             filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wltlib";// 授权目录
             picPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/cardpic";// 授权目录
+            try {
+                File mT1 = new File(filepath);
+                if (!mT1.exists()) {
+                    mT1.mkdir();
+                }
+                File mT2 = new File(picPath);
+                if (!mT2.exists()) {
+                    mT2.mkdir();
+                }
+            } catch (Exception e){
+
+            }
+
             mHandler = new MyHandler(this);
             MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
             CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
@@ -135,7 +160,63 @@ public class MainActivity extends Activity {
         } catch (Exception e){
             e.printStackTrace();
         }
-        initPermissions();
+
+        if (MyUtils.IsNetWorkEnable(this)) {
+//            checkSignNum();
+            checkHost();
+        } else {
+            showNetworkHint();
+        }
+    }
+
+    private void showNetworkHint() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("请设置网络");
+        builder.setPositiveButton("已连接网络", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (MyUtils.IsNetWorkEnable(MainActivity.this)) {
+//                    checkSignNum();
+                    checkHost();
+                } else {
+                    showNetworkHint();
+                }
+            }
+        });
+        builder.create().show();
+    }
+
+    private String signNum = "";
+    private void checkSignNum() {
+        signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
+        if (TextUtils.isEmpty(signNum)) {
+            Factory.resp(this, HttpFlag.FLAG_GET_ATTENDANCE_NUM, null).post(null);
+        } else {
+            tv_gw.setText(signNum);
+            initPermissions();
+        }
+    }
+
+    private String baseHost = "";
+    private void checkHost() {
+        baseHost = SPLongUtils.getString(this, "config_base_host", "");
+        if (TextUtils.isEmpty(baseHost)) {
+            SettingHostDialog dialog = new SettingHostDialog(this);
+            dialog.setCancelable(false);
+            dialog.setCallback(new SettingHostDialog.SettingFinishedCallback() {
+                @Override
+                public void onSettingFinished(String host) {
+                    baseHost = host;
+                    tv_gw.setText(baseHost);
+                    initPermissions();
+                }
+            });
+            dialog.show();
+        } else {
+            HttpFlag.changeBaseUrl(baseHost);
+            tv_gw.setText(baseHost);
+            initPermissions();
+        }
     }
 
     private TextView tv_status;
@@ -152,7 +233,6 @@ public class MainActivity extends Activity {
     private ImageView iv_loading;
     private ProgressBar pb_loading;
     private View v_big_loading;
-    private ImageView iv_test;
     private void initViews() {
         try {
             tv_loading_hint = findViewById(R.id.tv_loading_hint);
@@ -166,8 +246,6 @@ public class MainActivity extends Activity {
 
                 }
             });
-
-            iv_test = findViewById(R.id.iv_test);
 
             tv_status = findViewById(R.id.tv_status);
             previewView = findViewById(R.id.preview_view);
@@ -216,14 +294,134 @@ public class MainActivity extends Activity {
             btn_close.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     toExit();
                 }
             });
         } catch (Exception e){
 
         }
+    }
 
+    @Override
+    public void handleResp(Object formatData, int flag, Object tag, String response, String hint) {
+        if (flag == HttpFlag.FLAG_GET_ATTENDANCE_NUM) {
+            try {
+                List<String> list = new Gson().fromJson(formatData.toString(), new TypeToken<List<String>>(){}.getType());
+                if (list!=null&&list.size()>0) {
+                    ChooseSignDialog dialog = new ChooseSignDialog(this);
+                    dialog.setData(list);
+                    dialog.setCancelable(false);
+                    dialog.setCallback(new ChooseSignDialog.SettingFinishedCallback() {
+                        @Override
+                        public void onSettingFinished() {
+                            initPermissions();
+                        }
+                    });
+                    dialog.show();
+                }
+            } catch (Exception e){
+                showToast("获取签到单失败");
+            }
+        } else if (flag == HttpFlag.FLAG_INSERT_ATTENDANCE) {
+            try {
+                tv_result.setText("检测成功");
+                CHECK_SUCCESS_COUNT++;
+                tv_hg.setText(""+CHECK_SUCCESS_COUNT);
+                tv_loading_hint.setText("检测成功");
+                iv_loading.setImageResource(R.drawable.ai_success);
+                iv_loading.setVisibility(View.VISIBLE);
+                pb_loading.setVisibility(View.GONE);
+                if (mInfoBean==null) return;
+                try {
+                    CheckDataBean bean = new CheckDataBean();
+                    bean.setName(mInfoBean.getName());
+                    bean.setCard_number(mInfoBean.getCard());
+                    bean.setCreate_time(System.currentTimeMillis());
+                    bean.setSex(mInfoBean.getSex());
+                    bean.setStatus(1);
+                    DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
+                    FileUtils.writeCheckData(bean.toString());
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            } catch (Exception e){
+                signFail();
+            }
+        }
+    }
+
+    @Override
+    public void handleLoading(int flag, Object tag, boolean isShow) {
+
+    }
+
+    @Override
+    public void handleError(int flag, Object tag, int errorType, String response, String hint) {
+
+        if (flag == HttpFlag.FLAG_GET_ATTENDANCE_NUM) {
+            if (!TextUtils.isEmpty(hint)) {
+                showToast(hint);
+            } else {
+                showToast("获取签到单失败");
+            }
+        } else if (flag == HttpFlag.FLAG_INSERT_ATTENDANCE) {
+            if (!TextUtils.isEmpty(hint)) {
+                showToast(hint);
+            }
+            signFail();
+        }
+    }
+
+    @Override
+    public void handleAfter(int flag, Object tag) {
+        try {
+            if (flag == HttpFlag.FLAG_INSERT_ATTENDANCE) {
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        isWorking = false;
+                        try {
+                            if (!matching) {
+                                v_big_loading.setVisibility(View.GONE);
+                            }
+                        } catch (Exception e) {
+
+                        }
+                    }
+                }, 2500);
+            }
+        } catch (Exception e){
+            isWorking = false;
+        }
+
+    }
+
+    private void signFail() {
+        try {
+            tv_result.setText("检测失败");
+            CHECK_FAIL_COUNT++;
+            tv_sb.setText(""+CHECK_FAIL_COUNT);
+            tv_loading_hint.setText("检测失败");
+            iv_loading.setImageResource(R.drawable.ai_fail);
+            iv_loading.setVisibility(View.VISIBLE);
+            pb_loading.setVisibility(View.GONE);
+            if (mInfoBean==null) return;
+            try {
+                CheckDataBean bean = new CheckDataBean();
+                bean.setName(mInfoBean.getName());
+                bean.setCard_number(mInfoBean.getCard());
+                bean.setCreate_time(System.currentTimeMillis());
+                bean.setSex(mInfoBean.getSex());
+                bean.setStatus(0);
+                DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
+                FileUtils.writeCheckData(bean.toString());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        } catch (Exception e){
+
+        }
     }
 
     private void toExit(){
@@ -245,10 +443,8 @@ public class MainActivity extends Activity {
             @Override
             public void onDetectFace(int retCode, FaceInfo[] infos, ImageFrame frame) {
                 // TODO 显示检测的图片。用于调试，如果人脸sdk检测的人脸需要朝上，可以通过该图片判断
-
                 if (!isMatching) return;
-//                Log.e("MBAD", ""+(++count));
-                Bitmap bitmap = Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
+//                Bitmap bitmap = Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
 
                 checkFace(retCode, infos, frame);
                 showFrame(frame, infos);
@@ -334,11 +530,8 @@ public class MainActivity extends Activity {
             int ret = api.init();// 因为第一次需要点击授权，所以第一次点击时候的返回是-1所以我利用了广播接受到授权后用handler发送消息
             if (ret == 1) {
                 tv_status.setText("连接成功");
-
-
             } else {
                 tv_status.setText("连接失败");
-
             }
         } catch (Exception e){
             Log.e("HsOtgApi", e.getMessage());
@@ -510,7 +703,7 @@ public class MainActivity extends Activity {
             // 判断人脸大小，若人脸超过屏幕二分一，则提示文案“人脸离手机太近，请调整与手机的距离”；
             // 若人脸小于屏幕三分一，则提示“人脸离手机太远，请调整与手机的距离”
             float ratio = (float) faceInfo.mWidth / (float) height;
-            Log.i("liveness_ratio", "ratio=" + ratio);
+//            Log.i("liveness_ratio", "ratio=" + ratio);
             if (ratio > 0.6) {
                 tip = "人脸离屏幕太近，请调整与屏幕的距离";
                 return tip;
@@ -829,6 +1022,7 @@ public class MainActivity extends Activity {
 
     }
 
+    private boolean isWorking = false;
     private boolean m_Auto = false;
     public class CPUThread extends Thread {
         public CPUThread() {
@@ -842,7 +1036,7 @@ public class MainActivity extends Activity {
             try {
                 while (!isExit&&m_Auto) {
                     try {
-                        if (!isMatching) {
+                        if (!isWorking&&!isMatching) {
                             if (api.Authenticate(200, 200) != 1) {
                                 msg = Message.obtain();
                                 msg.what = HandlerMsg.READ_ERROR;
@@ -1069,23 +1263,25 @@ public class MainActivity extends Activity {
     private void showCheckResult(boolean isSuccess) {
         try {
             if (isSuccess) {
-                tv_result.setText("检测成功");
-                CHECK_SUCCESS_COUNT++;
-                tv_hg.setText(""+CHECK_SUCCESS_COUNT);
-                tv_loading_hint.setText("检测成功");
-                iv_loading.setImageResource(R.drawable.ai_success);
-                iv_loading.setVisibility(View.VISIBLE);
-                pb_loading.setVisibility(View.GONE);
                 try {
-                    Log.e("MAI", ""+mImageFrame.getArgb().length);
-                    /*Bitmap bmp = Bitmap.createBitmap(mImageFrame.getArgb(), 0, mImageFrame.getWidth(), mImageFrame.getWidth(), mImageFrame.getHeight(),
-                            Bitmap.Config.ARGB_8888);*/
-
-//                    iv_test.setImageBitmap(bmp);
+                    Bitmap bmp = Bitmap.createBitmap(mImageFrame.getArgb(), 0, mImageFrame.getWidth(), mImageFrame.getWidth(), mImageFrame.getHeight(),
+                            Bitmap.Config.ARGB_8888);
+                    Map<String, String> map = new HashMap<>();
+//                    map.put("attendanceNum", signNum);
+                    map.put("infoName", mInfoBean.getName());
+                    map.put("idCard", mInfoBean.getCard());
+                    map.put("compareResult", "1");
+                    map.put("signIcon", MyUtils.getStringForBitmap(bmp));
+                    SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//        df2.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    String temp = df2.format(new Date());
+                    map.put("signTime", temp);
+                    map.put("infoDetail", new Gson().toJson(mInfoBean));
+                    map.put("remark", "");
+                    Factory.resp(this, HttpFlag.FLAG_INSERT_ATTENDANCE, null).post(map);
                 } catch (Exception e){
 
                 }
-
             } else {
                 tv_result.setText("检测失败");
                 CHECK_FAIL_COUNT++;
@@ -1094,37 +1290,36 @@ public class MainActivity extends Activity {
                 iv_loading.setImageResource(R.drawable.ai_fail);
                 iv_loading.setVisibility(View.VISIBLE);
                 pb_loading.setVisibility(View.GONE);
-            }
-            if (mInfoBean==null) return;
-            try {
-                CheckDataBean bean = new CheckDataBean();
-                bean.setName(mInfoBean.getName());
-                bean.setCard_number(mInfoBean.getCard());
-                bean.setCreate_time(System.currentTimeMillis());
-                bean.setSex(mInfoBean.getSex());
-                bean.setStatus(isSuccess?1:0);
-                DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
-                FileUtils.writeCheckData(bean.toString());
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (!matching) {
-                            v_big_loading.setVisibility(View.GONE);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            isWorking = false;
+                            if (!matching) {
+                                v_big_loading.setVisibility(View.GONE);
+                            }
+                        } catch (Exception e) {
+
                         }
-                    } catch (Exception e) {
-
                     }
-
+                }, 2500);
+                if (mInfoBean==null) return;
+                try {
+                    CheckDataBean bean = new CheckDataBean();
+                    bean.setName(mInfoBean.getName());
+                    bean.setCard_number(mInfoBean.getCard());
+                    bean.setCreate_time(System.currentTimeMillis());
+                    bean.setSex(mInfoBean.getSex());
+                    bean.setStatus(isSuccess?1:0);
+                    DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
+                    FileUtils.writeCheckData(bean.toString());
+                } catch (Exception e){
+                    e.printStackTrace();
                 }
-            }, 2500);
+            }
         } catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
     private static class MyHandler extends Handler {
@@ -1210,6 +1405,10 @@ public class MainActivity extends Activity {
             MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
             CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
             MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
+//            signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
+            baseHost = SPLongUtils.getString(this, "config_base_host", "");
+//            tv_gw.setText(signNum);
+            tv_gw.setText(baseHost);
         } catch (Exception e){
 
         }
