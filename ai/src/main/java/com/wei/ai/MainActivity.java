@@ -151,7 +151,7 @@ public class MainActivity extends Activity implements WLibHttpListener{
             getWindowManager().getDefaultDisplay().getMetrics(dm);
             int W = dm.widthPixels;
             int H = dm.heightPixels;
-            Log.e(TAG, "W:"+W+",H:"+H);
+//            Log.e(TAG, "W:"+W+",H:"+H);
             faceDetectManager = new FaceDetectManager(getApplicationContext());
             m_Auto = true;
             initViews();
@@ -162,8 +162,8 @@ public class MainActivity extends Activity implements WLibHttpListener{
         }
 
         if (MyUtils.IsNetWorkEnable(this)) {
-//            checkSignNum();
-            checkHost();
+            checkSignNum();
+//            checkHost();
         } else {
             showNetworkHint();
         }
@@ -176,8 +176,8 @@ public class MainActivity extends Activity implements WLibHttpListener{
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 if (MyUtils.IsNetWorkEnable(MainActivity.this)) {
-//                    checkSignNum();
-                    checkHost();
+                    checkSignNum();
+//                    checkHost();
                 } else {
                     showNetworkHint();
                 }
@@ -232,7 +232,8 @@ public class MainActivity extends Activity implements WLibHttpListener{
     private TextView tv_loading_hint;
     private ImageView iv_loading;
     private ProgressBar pb_loading;
-    private View v_big_loading;
+    private View v_big_loading, v_person_result;
+    private Button btn_person_fail, btn_person_success;
     private void initViews() {
         try {
             tv_loading_hint = findViewById(R.id.tv_loading_hint);
@@ -240,10 +241,34 @@ public class MainActivity extends Activity implements WLibHttpListener{
             pb_loading = findViewById(R.id.pb_loading);
             v_big_loading = findViewById(R.id.v_big_loading);
 
+            v_person_result = findViewById(R.id.v_person_result);
+            btn_person_fail = findViewById(R.id.btn_person_fail);
+            btn_person_success = findViewById(R.id.btn_person_success);
+
             v_big_loading.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
+                }
+            });
+            v_person_result.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+
+            btn_person_fail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    handleFail();
+                }
+            });
+
+            btn_person_success.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    handleSuccess();
                 }
             });
 
@@ -1263,62 +1288,96 @@ public class MainActivity extends Activity implements WLibHttpListener{
     private void showCheckResult(boolean isSuccess) {
         try {
             if (isSuccess) {
-                try {
-                    Bitmap bmp = Bitmap.createBitmap(mImageFrame.getArgb(), 0, mImageFrame.getWidth(), mImageFrame.getWidth(), mImageFrame.getHeight(),
-                            Bitmap.Config.ARGB_8888);
-                    Map<String, String> map = new HashMap<>();
-//                    map.put("attendanceNum", signNum);
-                    map.put("infoName", mInfoBean.getName());
-                    map.put("idCard", mInfoBean.getCard());
-                    map.put("compareResult", "1");
-                    map.put("signIcon", MyUtils.getStringForBitmap(bmp));
-                    SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-//        df2.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    String temp = df2.format(new Date());
-                    map.put("signTime", temp);
-                    map.put("infoDetail", new Gson().toJson(mInfoBean));
-                    map.put("remark", "");
-                    Factory.resp(this, HttpFlag.FLAG_INSERT_ATTENDANCE, null).post(map);
-                } catch (Exception e){
-
-                }
+                handleSuccess();
             } else {
-                tv_result.setText("检测失败");
-                CHECK_FAIL_COUNT++;
-                tv_sb.setText(""+CHECK_FAIL_COUNT);
-                tv_loading_hint.setText("检测失败");
-                iv_loading.setImageResource(R.drawable.ai_fail);
-                iv_loading.setVisibility(View.VISIBLE);
-                pb_loading.setVisibility(View.GONE);
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            isWorking = false;
-                            if (!matching) {
-                                v_big_loading.setVisibility(View.GONE);
-                            }
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }, 2500);
-                if (mInfoBean==null) return;
-                try {
-                    CheckDataBean bean = new CheckDataBean();
-                    bean.setName(mInfoBean.getName());
-                    bean.setCard_number(mInfoBean.getCard());
-                    bean.setCreate_time(System.currentTimeMillis());
-                    bean.setSex(mInfoBean.getSex());
-                    bean.setStatus(isSuccess?1:0);
-                    DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
-                    FileUtils.writeCheckData(bean.toString());
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
+                showPersonResult();
             }
         } catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    private void showPersonResult() {
+        try {
+            v_person_result.setVisibility(View.VISIBLE);
+        } catch (Exception e){
+
+        }
+    }
+
+    private void handleSuccess() {
+        try {
+            if (v_person_result.getVisibility()!=View.GONE) {
+                v_person_result.setVisibility(View.GONE);
+            }
+        } catch (Exception e){
+
+        }
+        try {
+            Bitmap bmp = Bitmap.createBitmap(mImageFrame.getArgb(), 0, mImageFrame.getWidth(), mImageFrame.getWidth(), mImageFrame.getHeight(),
+                    Bitmap.Config.ARGB_8888);
+            Map<String, String> map = new HashMap<>();
+            map.put("attendanceNum", signNum);
+            map.put("infoName", mInfoBean.getName());
+            map.put("idCard", mInfoBean.getCard());
+            map.put("compareResult", "1");
+            map.put("signIcon", MyUtils.getStringForBitmap(bmp));
+            SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//        df2.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String temp = df2.format(new Date());
+            map.put("signTime", temp);
+//                    map.put("infoDetail", new Gson().toJson(mInfoBean));
+            map.put("remark", "");
+            Factory.resp(this, HttpFlag.FLAG_INSERT_ATTENDANCE, null).post(map);
+        } catch (Exception e){
+
+        }
+    }
+
+    private void handleFail() {
+        try {
+            if (v_person_result.getVisibility()!=View.GONE) {
+                v_person_result.setVisibility(View.GONE);
+            }
+        } catch (Exception e){
+
+        }
+        try {
+            tv_result.setText("检测失败");
+            CHECK_FAIL_COUNT++;
+            tv_sb.setText(""+CHECK_FAIL_COUNT);
+            tv_loading_hint.setText("检测失败");
+            iv_loading.setImageResource(R.drawable.ai_fail);
+            iv_loading.setVisibility(View.VISIBLE);
+            pb_loading.setVisibility(View.GONE);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        isWorking = false;
+                        if (!matching) {
+                            v_big_loading.setVisibility(View.GONE);
+                        }
+                    } catch (Exception e) {
+
+                    }
+                }
+            }, 2500);
+            if (mInfoBean==null) return;
+            try {
+                CheckDataBean bean = new CheckDataBean();
+                bean.setName(mInfoBean.getName());
+                bean.setCard_number(mInfoBean.getCard());
+                bean.setCreate_time(System.currentTimeMillis());
+                bean.setSex(mInfoBean.getSex());
+                bean.setStatus(0);
+                DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
+                FileUtils.writeCheckData(bean.toString());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        } catch (Exception e){
+
         }
     }
 
@@ -1358,6 +1417,7 @@ public class MainActivity extends Activity implements WLibHttpListener{
             }
         }
     };
+
 
     private boolean INIT_FLAG = false;
     private void hideLoading() {
@@ -1405,10 +1465,10 @@ public class MainActivity extends Activity implements WLibHttpListener{
             MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
             CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
             MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
-//            signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
-            baseHost = SPLongUtils.getString(this, "config_base_host", "");
-//            tv_gw.setText(signNum);
-            tv_gw.setText(baseHost);
+            signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
+//            baseHost = SPLongUtils.getString(this, "config_base_host", "");
+            tv_gw.setText(signNum);
+//            tv_gw.setText(baseHost);
         } catch (Exception e){
 
         }

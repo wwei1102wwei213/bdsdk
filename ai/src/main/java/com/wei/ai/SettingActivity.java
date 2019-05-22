@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.baidu.aip.utils.PreferencesUtil;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.wei.ai.biz.Factory;
 import com.wei.ai.biz.HttpFlag;
 import com.wei.ai.utils.SPLongUtils;
 import com.wei.wlib.http.WLibHttpListener;
@@ -41,7 +42,7 @@ public class SettingActivity extends Activity implements WLibHttpListener{
         CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
         MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
         initViews();
-//        Factory.resp(this, HttpFlag.FLAG_GET_ATTENDANCE_NUM, null).post(null);
+        Factory.resp(this, HttpFlag.FLAG_GET_ATTENDANCE_NUM, null).post(null);
     }
 
     private EditText et_score, et_check_time, et_face_size;
@@ -72,14 +73,14 @@ public class SettingActivity extends Activity implements WLibHttpListener{
                 finish();
             }
         });
-        /*signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
+        signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
         tv_sign_num.setText(signNum);
         tv_sign_num.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showSignDialog();
             }
-        });*/
+        });
         mHost = SPLongUtils.getString(this, "config_base_host", "");
         tv_host.setText(mHost);
         tv_host.setOnClickListener(new View.OnClickListener() {

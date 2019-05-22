@@ -21,6 +21,7 @@
     <color name="title_setting_text_color">#333</color>
 
     <color name="text_red">#cc0000</color>
+    <color name="text_green_bg">#008833</color>
 
     <color name="item_search_text_color">#333</color>
     <color name="title_search_text_color">#333</color>
