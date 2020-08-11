@@ -42,7 +42,7 @@ public class InfoDetailDialog extends Dialog{
         /*try {
             getWindow().setGravity(Gravity.CENTER);
         } catch (Exception e){
-
+-+-+
         }*/
 
     }

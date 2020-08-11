@@ -92,132 +92,26 @@ import java.util.concurrent.Executors;
 public class MainActivity extends Activity implements WLibHttpListener{
 
     private static final String TAG = "BD_AI";
-    private static final int PICK_PHOTO = 100;
-    //权限处理业务
     private WLibPermissionsBiz biz;
-
-    ArrayList<String> list = new ArrayList<>();
-    private boolean success = false;
-
     private HsOtgApi api;
     private String filepath;
     private String picPath;
     private MyHandler mHandler;
-
     private byte[] photoFeature = new byte[2048];
-
-    private Uri uri;
-
     private long MAX_ONCE_CHECK_TIME;
-
     private int CHECK_SIZE;
-
     private int MATCH_SCORE;
-
+    private String signNum = "";
+    private String baseHost = "";
     private long onceStartTime;
     private boolean isMatching = false;
-
     private int CHECK_SUCCESS_COUNT = 0;
     private int CHECK_FAIL_COUNT = 0;
+    private boolean isExit = false;
+    private static final int MSG_HIDE_LOADING = 254;
+    private static final int MSG_CHECK_RESULT_SUCCESS = 255;
+    private static final int MSG_CHECK_RESULT_FAIL = 256;
     private MyTimeTask mTask;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        try {
-            filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wltlib";// 授权目录
-            picPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/cardpic";// 授权目录
-            try {
-                File mT1 = new File(filepath);
-                if (!mT1.exists()) {
-                    mT1.mkdir();
-                }
-                File mT2 = new File(picPath);
-                if (!mT2.exists()) {
-                    mT2.mkdir();
-                }
-            } catch (Exception e){
-
-            }
-
-            mHandler = new MyHandler(this);
-            MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
-            CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
-            MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
-            DisplayMetrics dm = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(dm);
-            int W = dm.widthPixels;
-            int H = dm.heightPixels;
-//            Log.e(TAG, "W:"+W+",H:"+H);
-            faceDetectManager = new FaceDetectManager(getApplicationContext());
-            m_Auto = true;
-            initViews();
-            mTask = new MyTimeTask();
-            mHandler.postDelayed(mTask, 30000);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        if (MyUtils.IsNetWorkEnable(this)) {
-            checkSignNum();
-//            checkHost();
-        } else {
-            showNetworkHint();
-        }
-    }
-
-    private void showNetworkHint() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("请设置网络");
-        builder.setPositiveButton("已连接网络", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (MyUtils.IsNetWorkEnable(MainActivity.this)) {
-                    checkSignNum();
-//                    checkHost();
-                } else {
-                    showNetworkHint();
-                }
-            }
-        });
-        builder.create().show();
-    }
-
-    private String signNum = "";
-    private void checkSignNum() {
-        signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
-        if (TextUtils.isEmpty(signNum)) {
-            Factory.resp(this, HttpFlag.FLAG_GET_ATTENDANCE_NUM, null).post(null);
-        } else {
-            tv_gw.setText(signNum);
-            initPermissions();
-        }
-    }
-
-    private String baseHost = "";
-    private void checkHost() {
-        baseHost = SPLongUtils.getString(this, "config_base_host", "");
-        if (TextUtils.isEmpty(baseHost)) {
-            SettingHostDialog dialog = new SettingHostDialog(this);
-            dialog.setCancelable(false);
-            dialog.setCallback(new SettingHostDialog.SettingFinishedCallback() {
-                @Override
-                public void onSettingFinished(String host) {
-                    baseHost = host;
-                    tv_gw.setText(baseHost);
-                    initPermissions();
-                }
-            });
-            dialog.show();
-        } else {
-            HttpFlag.changeBaseUrl(baseHost);
-            tv_gw.setText(baseHost);
-            initPermissions();
-        }
-    }
 
     private TextView tv_status;
     private TexturePreviewView previewView;
@@ -234,234 +128,143 @@ public class MainActivity extends Activity implements WLibHttpListener{
     private ProgressBar pb_loading;
     private View v_big_loading, v_person_result;
     private Button btn_person_fail, btn_person_success;
-    private void initViews() {
-        try {
-            tv_loading_hint = findViewById(R.id.tv_loading_hint);
-            iv_loading = findViewById(R.id.iv_loading);
-            pb_loading = findViewById(R.id.pb_loading);
-            v_big_loading = findViewById(R.id.v_big_loading);
+    private ProgressDialog dialog;
 
-            v_person_result = findViewById(R.id.v_person_result);
-            btn_person_fail = findViewById(R.id.btn_person_fail);
-            btn_person_success = findViewById(R.id.btn_person_success);
-
-            v_big_loading.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                }
-            });
-            v_person_result.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                }
-            });
-
-            btn_person_fail.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    handleFail();
-                }
-            });
-
-            btn_person_success.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    handleSuccess();
-                }
-            });
-
-            tv_status = findViewById(R.id.tv_status);
-            previewView = findViewById(R.id.preview_view);
-            textureView = findViewById(R.id.texture_view);
-            tipTv =  findViewById(R.id.tip);
-            matchScoreTv = (TextView) findViewById(R.id.match_score_tv);
-
-            iv_photo = findViewById(R.id.iv_photo);
-
-            btn_search =findViewById(R.id.btn_search);
-            btn_setting =findViewById(R.id.btn_setting);
-            btn_close =findViewById(R.id.btn_close);
-
-            tv_name = findViewById(R.id.tv_name);
-            tv_sex = findViewById(R.id.tv_sex);
-            tv_num = findViewById(R.id.tv_num);
-
-            tv_birthday = findViewById(R.id.tv_birthday);
-            tv_date = findViewById(R.id.tv_date);
-            tv_check_time = findViewById(R.id.tv_check_time);
-            tv_address = findViewById(R.id.tv_address);
-
-            tv_result = findViewById(R.id.tv_result);
-//            iv_result = findViewById(R.id.iv_result);
-
-            tv_time = findViewById(R.id.tv_time);
-            tv_gw = findViewById(R.id.tv_gw);
-            tv_hg = findViewById(R.id.tv_hg);
-            tv_sb = findViewById(R.id.tv_sb);
-
-            SimpleDateFormat ms = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA);
-            tv_time.setText(ms.format(new Date()));
-
-            btn_setting.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, SettingActivity.class));
-                }
-            });
-            btn_search.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, SearchActivity.class));
-                }
-            });
-            btn_close.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    toExit();
-                }
-            });
-        } catch (Exception e){
-
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        setFilePath();
+        setSPData();
+        mHandler = new MyHandler(this);
+        faceDetectManager = new FaceDetectManager(getApplicationContext());
+        m_Auto = true;
+        initViews();
+        mTask = new MyTimeTask();
+        mHandler.postDelayed(mTask, 30000);
+        if (MyUtils.IsNetWorkEnable(this)) {
+            initPermissions();
+        } else {
+            showNetworkHint();
         }
+    }
+
+    /**
+     * 无网络提示
+     */
+    private void showNetworkHint() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("请设置网络");
+        builder.setPositiveButton("已连接网络", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (MyUtils.IsNetWorkEnable(MainActivity.this)) {
+                    initPermissions();
+                } else {
+                    showNetworkHint();
+                }
+            }
+        });
+        builder.create().show();
+    }
+
+    /**
+     * 设置UI
+     */
+    private void initViews() {
+
+        tv_loading_hint = findViewById(R.id.tv_loading_hint);
+        iv_loading = findViewById(R.id.iv_loading);
+        pb_loading = findViewById(R.id.pb_loading);
+        v_big_loading = findViewById(R.id.v_big_loading);
+        v_person_result = findViewById(R.id.v_person_result);
+        btn_person_fail = findViewById(R.id.btn_person_fail);
+        btn_person_success = findViewById(R.id.btn_person_success);
+        tv_status = findViewById(R.id.tv_status);
+        previewView = findViewById(R.id.preview_view);
+        textureView = findViewById(R.id.texture_view);
+        tipTv =  findViewById(R.id.tip);
+        matchScoreTv = (TextView) findViewById(R.id.match_score_tv);
+        iv_photo = findViewById(R.id.iv_photo);
+        btn_search =findViewById(R.id.btn_search);
+        btn_setting =findViewById(R.id.btn_setting);
+        btn_close =findViewById(R.id.btn_close);
+        tv_name = findViewById(R.id.tv_name);
+        tv_sex = findViewById(R.id.tv_sex);
+        tv_num = findViewById(R.id.tv_num);
+        tv_birthday = findViewById(R.id.tv_birthday);
+        tv_date = findViewById(R.id.tv_date);
+        tv_check_time = findViewById(R.id.tv_check_time);
+        tv_address = findViewById(R.id.tv_address);
+        tv_result = findViewById(R.id.tv_result);
+        tv_time = findViewById(R.id.tv_time);
+        tv_gw = findViewById(R.id.tv_gw);
+        tv_hg = findViewById(R.id.tv_hg);
+        tv_sb = findViewById(R.id.tv_sb);
+
+        tv_gw.setText(TextUtils.isEmpty(signNum)?"未设置":signNum);
+        SimpleDateFormat ms = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA);
+        tv_time.setText(ms.format(new Date()));
+
+        v_big_loading.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {}
+        });
+        v_person_result.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {}
+        });
+        btn_person_fail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleFail();
+            }
+        });
+        btn_person_success.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleSuccess();
+            }
+        });
+        btn_setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, SettingActivity.class));
+            }
+        });
+        btn_search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, SearchActivity.class));
+            }
+        });
+        btn_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toExit();
+            }
+        });
     }
 
     @Override
     public void handleResp(Object formatData, int flag, Object tag, String response, String hint) {
-        if (flag == HttpFlag.FLAG_GET_ATTENDANCE_NUM) {
-            try {
-                List<String> list = new Gson().fromJson(formatData.toString(), new TypeToken<List<String>>(){}.getType());
-                if (list!=null&&list.size()>0) {
-                    ChooseSignDialog dialog = new ChooseSignDialog(this);
-                    dialog.setData(list);
-                    dialog.setCancelable(false);
-                    dialog.setCallback(new ChooseSignDialog.SettingFinishedCallback() {
-                        @Override
-                        public void onSettingFinished() {
-                            initPermissions();
-                        }
-                    });
-                    dialog.show();
-                }
-            } catch (Exception e){
-                showToast("获取签到单失败");
-            }
-        } else if (flag == HttpFlag.FLAG_INSERT_ATTENDANCE) {
-            try {
-                tv_result.setText("检测成功");
-                CHECK_SUCCESS_COUNT++;
-                tv_hg.setText(""+CHECK_SUCCESS_COUNT);
-                tv_loading_hint.setText("检测成功");
-                iv_loading.setImageResource(R.drawable.ai_success);
-                iv_loading.setVisibility(View.VISIBLE);
-                pb_loading.setVisibility(View.GONE);
-                if (mInfoBean==null) return;
-                try {
-                    CheckDataBean bean = new CheckDataBean();
-                    bean.setName(mInfoBean.getName());
-                    bean.setCard_number(mInfoBean.getCard());
-                    bean.setCreate_time(System.currentTimeMillis());
-                    bean.setSex(mInfoBean.getSex());
-                    bean.setStatus(1);
-                    DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
-                    FileUtils.writeCheckData(bean.toString());
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-
-            } catch (Exception e){
-                signFail();
-            }
-        }
     }
 
     @Override
-    public void handleLoading(int flag, Object tag, boolean isShow) {
-
-    }
+    public void handleLoading(int flag, Object tag, boolean isShow) {}
 
     @Override
-    public void handleError(int flag, Object tag, int errorType, String response, String hint) {
-
-        if (flag == HttpFlag.FLAG_GET_ATTENDANCE_NUM) {
-            if (!TextUtils.isEmpty(hint)) {
-                showToast(hint);
-            } else {
-                showToast("获取签到单失败");
-            }
-        } else if (flag == HttpFlag.FLAG_INSERT_ATTENDANCE) {
-            if (!TextUtils.isEmpty(hint)) {
-                showToast(hint);
-            }
-            signFail();
-        }
-    }
+    public void handleError(int flag, Object tag, int errorType, String response, String hint) {}
 
     @Override
-    public void handleAfter(int flag, Object tag) {
-        try {
-            if (flag == HttpFlag.FLAG_INSERT_ATTENDANCE) {
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        isWorking = false;
-                        try {
-                            if (!matching) {
-                                v_big_loading.setVisibility(View.GONE);
-                            }
-                        } catch (Exception e) {
+    public void handleAfter(int flag, Object tag) {}
 
-                        }
-                    }
-                }, 2500);
-            }
-        } catch (Exception e){
-            isWorking = false;
-        }
 
-    }
-
-    private void signFail() {
-        try {
-            tv_result.setText("检测失败");
-            CHECK_FAIL_COUNT++;
-            tv_sb.setText(""+CHECK_FAIL_COUNT);
-            tv_loading_hint.setText("检测失败");
-            iv_loading.setImageResource(R.drawable.ai_fail);
-            iv_loading.setVisibility(View.VISIBLE);
-            pb_loading.setVisibility(View.GONE);
-            if (mInfoBean==null) return;
-            try {
-                CheckDataBean bean = new CheckDataBean();
-                bean.setName(mInfoBean.getName());
-                bean.setCard_number(mInfoBean.getCard());
-                bean.setCreate_time(System.currentTimeMillis());
-                bean.setSex(mInfoBean.getSex());
-                bean.setStatus(0);
-                DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
-                FileUtils.writeCheckData(bean.toString());
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-        } catch (Exception e){
-
-        }
-    }
-
-    private void toExit(){
-        try {
-            isExit = true;
-            finish();
-            android.os.Process.killProcess(android.os.Process.myPid());
-            System.exit(0);
-        }catch (Exception e){
-
-        }
-    }
-
-    int count = 0;
-//    private Bitmap bitmap;
+    /**
+     * 设置监听
+     */
     private void initListener() {
         // 设置回调，回调人脸检测结果。
         faceDetectManager.setOnFaceDetectListener(new FaceDetectManager.OnFaceDetectListener() {
@@ -469,30 +272,28 @@ public class MainActivity extends Activity implements WLibHttpListener{
             public void onDetectFace(int retCode, FaceInfo[] infos, ImageFrame frame) {
                 // TODO 显示检测的图片。用于调试，如果人脸sdk检测的人脸需要朝上，可以通过该图片判断
                 if (!isMatching) return;
-//                Bitmap bitmap = Bitmap.createBitmap(frame.getArgb(), frame.getWidth(), frame.getHeight(), Bitmap.Config.ARGB_8888);
-
                 checkFace(retCode, infos, frame);
                 showFrame(frame, infos);
             }
         });
     }
 
+    /**
+     * 权限检测
+     */
     private void initPermissions () {
-        biz = new WLibPermissionsBiz(this,
-                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                124,
-                new WLibPermissionsBiz.RequestPermissionsListener() {
-                    @Override
-                    public void RequestComplete(boolean isOk) {
-                        if (isOk) {
-                            init();
-                        }
-                    }
-                });
+        biz = new WLibPermissionsBiz(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124, new WLibPermissionsBiz.RequestPermissionsListener() {
+            @Override
+            public void RequestComplete(boolean isOk) {
+                if (isOk) init();
+            }
+        });
         biz.toCheckPermission();
     }
 
-    private ProgressDialog dialog;
+    /**
+     * 初始化
+     */
     private void init() {
         try {
             dialog = new ProgressDialog(this);
@@ -507,21 +308,17 @@ public class MainActivity extends Activity implements WLibHttpListener{
             FaceSDKManager.getInstance().init(this);
             FaceSDKManager.getInstance().setSdkInitListener(new FaceSDKManager.SdkInitListener() {
                 @Override
-                public void initStart() {
-                }
-
+                public void initStart() {}
                 @Override
                 public void initSuccess() {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-
                             dialog.setMessage("正在初始化设备");
                             mHandler.sendEmptyMessageDelayed(MSG_HIDE_LOADING, 5000);
                         }
                     });
                 }
-
                 @Override
                 public void initFail(int errorCode, String msg) {
                     handler.post(new Runnable() {
@@ -531,22 +328,17 @@ public class MainActivity extends Activity implements WLibHttpListener{
                             tv_status.setText("初始化失败");
                         }
                     });
-
                 }
             });
-
-//            m_Auto = true;
-//            new Thread(new CPUThread()).start();
-
-
         } catch (Exception e){
             e.printStackTrace();
 
         }
-
-//            sam.setText(api.GetSAMID());
     }
 
+    /**
+     * 初始化读卡设备
+     * */
     private void initMeition() {
         try {
             copy(MainActivity.this, "base.dat", "base.dat", filepath);
@@ -562,12 +354,7 @@ public class MainActivity extends Activity implements WLibHttpListener{
             Log.e("HsOtgApi", e.getMessage());
             e.printStackTrace();
         }
-
-        try {
-            initCamera();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        initCamera();
     }
 
     // 用于检测人脸。
@@ -595,7 +382,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
             cameraImageSource.setPreviewView(previewView);
             // 设置图片源
             faceDetectManager.setImageSource(cameraImageSource);
-
             textureView.setOpaque(false);
             // 不需要屏幕自动变黑。
             textureView.setKeepScreenOn(true);
@@ -607,9 +393,8 @@ public class MainActivity extends Activity implements WLibHttpListener{
             initListener();
             m_Auto = true;
 
-
         } catch (Exception e){
-
+            showToast("相机初始化失败");
         }
 
 
@@ -707,11 +492,8 @@ public class MainActivity extends Activity implements WLibHttpListener{
         });
     }
 
-
-
     private String filter(FaceInfo faceInfo, ImageFrame imageFrame) {
         if (!isMatching) return "";
-
         String tip = "";
         try {
             if (faceInfo.mConf < 0.6) {
@@ -774,7 +556,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
         } catch (Exception e){
             e.printStackTrace();
         }
-
         return tip;
     }
 
@@ -799,11 +580,7 @@ public class MainActivity extends Activity implements WLibHttpListener{
     }
 
     private void match(final byte[] photoFeature, FaceInfo faceInfo, ImageFrame imageFrame) {
-
-        if (faceInfo == null) {
-            return;
-        }
-
+        if (faceInfo == null) return;
         float raw = Math.abs(faceInfo.headPose[0]);
         float patch = Math.abs(faceInfo.headPose[1]);
         float roll = Math.abs(faceInfo.headPose[2]);
@@ -845,7 +622,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
         } catch (Exception e){
             e.printStackTrace();
         }
-
 
     }
 
@@ -993,18 +769,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        try {
-            // 开始检测
-//            faceDetectManager.start();
-        } catch (Exception e){
-
-        }
-
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         try {
@@ -1013,7 +777,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
         } catch (Exception e){
 
         }
-
     }
 
 
@@ -1027,13 +790,9 @@ public class MainActivity extends Activity implements WLibHttpListener{
         } catch (Exception e){
 
         }
-        try {
-            if (mHandler!=null) {
-                mHandler.removeCallbacksAndMessages(null);
-                mHandler=null;
-            }
-        } catch (Exception e){
-
+        if (mHandler!=null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler=null;
         }
         try {
             if (api != null) {
@@ -1042,9 +801,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
         } catch (Exception e){
 
         }
-
-
-
     }
 
     private boolean isWorking = false;
@@ -1097,44 +853,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
     SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");// 设置日期格式
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
 
-    /**
-     * 指纹 指位代码
-     *
-     * @param FPcode
-     * @return
-     */
-    String GetFPcode(int FPcode) {
-        switch (FPcode) {
-            case 11:
-                return "右手拇指";
-            case 12:
-                return "右手食指";
-            case 13:
-                return "右手中指";
-            case 14:
-                return "右手环指";
-            case 15:
-                return "右手小指";
-            case 16:
-                return "左手拇指";
-            case 17:
-                return "左手食指";
-            case 18:
-                return "左手中指";
-            case 19:
-                return "左手环指";
-            case 20:
-                return "左手小指";
-            case 97:
-                return "右手不确定指位";
-            case 98:
-                return "左手不确定指位";
-            case 99:
-                return "其他不确定指位";
-            default:
-                return "未知";
-        }
-    }
 
     private InfoBean mInfoBean;
     Handler h = new Handler(){
@@ -1162,16 +880,6 @@ public class MainActivity extends Activity implements WLibHttpListener{
 
                 mInfoBean = null;
                 if (ic.getcertType() == " ") {
-                    /*tv_info.setText("证件类型：身份证\n" + "姓名："
-                            + ic.getPeopleName() + "\n" + "性别：" + ic.getSex()
-                            + "\n" + "民族：" + ic.getPeople() + "\n" + "出生日期："
-                            + df.format(ic.getBirthDay()) + "\n" + "地址："
-                            + ic.getAddr() + "\n" + "身份号码：" + ic.getIDCard()
-                            + "\n" + "签发机关：" + ic.getDepartment() + "\n"
-                            + "有效期限：" + ic.getStrartDate() + "-"
-                            + ic.getEndDate());*/
-                            /*+ "\n" + m_FristPFInfo + "\n"
-                            + m_SecondPFInfo);*/
                     try {
                         tv_name.setText(ic.getPeopleName());
                         tv_sex.setText(ic.getSex());
@@ -1193,37 +901,7 @@ public class MainActivity extends Activity implements WLibHttpListener{
                     }
 
                 } else {
-                    if(ic.getcertType() == "J")
-                    {
-                        /*tv_info.setText("证件类型：港澳台居住证（J）\n"
-                                + "姓名：" + ic.getPeopleName() + "\n" + "性别："
-                                + ic.getSex() + "\n"
-                                + "签发次数：" + ic.getissuesNum() + "\n"
-                                + "通行证号码：" + ic.getPassCheckID() + "\n"
-                                + "出生日期：" + df.format(ic.getBirthDay())
-                                + "\n" + "地址：" + ic.getAddr() + "\n" + "身份号码："
-                                + ic.getIDCard() + "\n" + "签发机关："
-                                + ic.getDepartment() + "\n" + "有效期限："
-                                + ic.getStrartDate() + "-" + ic.getEndDate()
-                                + "\n"
-                                + m_FristPFInfo + "\n" + m_SecondPFInfo);*/
-                    }
-                    else{
-                        if(ic.getcertType() == "I")
-                        {
-                            /*tv_info.setText("证件类型：外国人永久居留证（I）\n"
-                                    + "英文名称：" + ic.getPeopleName() + "\n"
-                                    + "中文名称：" + ic.getstrChineseName() + "\n"
-                                    + "性别：" + ic.getSex() + "\n"
-                                    + "永久居留证号：" + ic.getIDCard() + "\n"
-                                    + "国籍：" + ic.getstrNationCode() + "\n"
-                                    + "出生日期：" + df.format(ic.getBirthDay())
-                                    + "\n" + "证件版本号：" + ic.getstrCertVer() + "\n"
-                                    + "申请受理机关：" + ic.getDepartment() + "\n"
-                                    + "有效期限："+ ic.getStrartDate() + "-" + ic.getEndDate() + "\n"
-                                    + m_FristPFInfo + "\n" + m_SecondPFInfo);*/
-                        }
-                    }
+
 
                 }
                 Test.test("/mnt/sdcard/test.txt4", ic.toString());
@@ -1297,50 +975,76 @@ public class MainActivity extends Activity implements WLibHttpListener{
         }
     }
 
+    /**
+     * 人工确认结果
+     */
     private void showPersonResult() {
-        try {
-            v_person_result.setVisibility(View.VISIBLE);
-        } catch (Exception e){
-
-        }
+        v_person_result.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * 检测成功
+     */
     private void handleSuccess() {
-        try {
-            if (v_person_result.getVisibility()!=View.GONE) {
-                v_person_result.setVisibility(View.GONE);
-            }
-        } catch (Exception e){
-
+        if (v_person_result.getVisibility()!=View.GONE) {
+            v_person_result.setVisibility(View.GONE);
         }
+        tv_result.setText("检测成功");
+        CHECK_SUCCESS_COUNT++;
+        tv_hg.setText(""+CHECK_SUCCESS_COUNT);
+        tv_loading_hint.setText("检测成功");
+        iv_loading.setImageResource(R.drawable.ai_success);
+        iv_loading.setVisibility(View.VISIBLE);
+        pb_loading.setVisibility(View.GONE);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                isWorking = false;
+                if (!matching) {
+                    v_big_loading.setVisibility(View.GONE);
+                }
+            }
+        }, 2500);
+
+        if (mInfoBean==null) return;
+        //写入本地数据
+        try {
+            CheckDataBean bean = new CheckDataBean();
+            bean.setName(mInfoBean.getName());
+            bean.setCard_number(mInfoBean.getCard());
+            bean.setCreate_time(System.currentTimeMillis());
+            bean.setSex(mInfoBean.getSex());
+            bean.setStatus(1);
+            DBHelper.getInstance().insertObject(BaseApplication.getInstance(), bean, CheckDataBean.class);
+            FileUtils.writeCheckData(bean.toString());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        if (TextUtils.isEmpty(baseHost)) return;
+        //上报服务端
         try {
             Bitmap bmp = Bitmap.createBitmap(mImageFrame.getArgb(), 0, mImageFrame.getWidth(), mImageFrame.getWidth(), mImageFrame.getHeight(),
                     Bitmap.Config.ARGB_8888);
             Map<String, String> map = new HashMap<>();
-            map.put("attendanceNum", signNum);
-            map.put("infoName", mInfoBean.getName());
-            map.put("idCard", mInfoBean.getCard());
-            map.put("compareResult", "1");
-            map.put("signIcon", MyUtils.getStringForBitmap(bmp));
-            SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-//        df2.setTimeZone(TimeZone.getTimeZone("UTC"));
+            map.put("Tag", signNum);
+            map.put("InfoName", mInfoBean.getName());
+            map.put("IdCard", mInfoBean.getCard());
+            map.put("CompareResult", "1");
+            map.put("Icon", MyUtils.getStringForBitmap(bmp));
+            SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
             String temp = df2.format(new Date());
-            map.put("signTime", temp);
-//                    map.put("infoDetail", new Gson().toJson(mInfoBean));
-            map.put("remark", "");
-            Factory.resp(this, HttpFlag.FLAG_INSERT_ATTENDANCE, null).post(map);
+            map.put("Time", temp);
+            map.put("Remark", "");
+            Factory.resp(null, HttpFlag.FLAG_INSERT_ATTENDANCE, null).post(map);
         } catch (Exception e){
-
+            showToast("error FLAG_INSERT_ATTENDANCE");
         }
     }
 
     private void handleFail() {
-        try {
-            if (v_person_result.getVisibility()!=View.GONE) {
-                v_person_result.setVisibility(View.GONE);
-            }
-        } catch (Exception e){
-
+        if (v_person_result.getVisibility()!=View.GONE) {
+            v_person_result.setVisibility(View.GONE);
         }
         try {
             tv_result.setText("检测失败");
@@ -1418,29 +1122,20 @@ public class MainActivity extends Activity implements WLibHttpListener{
         }
     };
 
-
-    private boolean INIT_FLAG = false;
+    /**
+     * 初始化成功,结束loading,启动检测
+     */
     private void hideLoading() {
-        try {
-            tv_status.setText("初始化成功");
-            dialog.dismiss();
-            INIT_FLAG = true;
-            new Thread(new CPUThread()).start();
-        } catch (Exception e){
-
-        }
-
+        tv_status.setText("初始化成功");
+        if (dialog!=null) dialog.dismiss();
+        new Thread(new CPUThread()).start();
     }
 
-    private boolean isExit = false;
-    private static final int MSG_HIDE_LOADING = 254;
-    private static final int MSG_CHECK_RESULT_SUCCESS = 255;
-    private static final int MSG_CHECK_RESULT_FAIL = 256;
-
+    /**
+     * 更新系统时间
+     */
     private class MyTimeTask implements Runnable {
-
         private SimpleDateFormat sdf;
-
         public MyTimeTask() {
             sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA);
         }
@@ -1458,39 +1153,65 @@ public class MainActivity extends Activity implements WLibHttpListener{
         }
     }
 
+    /**
+     * 页面返回刷新配置参数
+     */
     @Override
     protected void onRestart() {
         super.onRestart();
-        try {
-            MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
-            CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
-            MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
-            signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
-//            baseHost = SPLongUtils.getString(this, "config_base_host", "");
-            tv_gw.setText(signNum);
-//            tv_gw.setText(baseHost);
-        } catch (Exception e){
+        setSPData();
+    }
 
+    /**
+     * 屏蔽返回
+     */
+    @Override
+    public void onBackPressed() {}
+
+    /**
+     * 退出应用
+     */
+    private void toExit(){
+        try {
+            isExit = true;
+            finish();
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(0);
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
-    @Override
-    public void onBackPressed() {
-
+    /**
+     * 设置存储目录
+     */
+    private void setFilePath() {
+        filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wltlib";// 授权目录
+        picPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/cardpic";// 授权目录
+        try {
+            File mT1 = new File(filepath);
+            if (!mT1.exists()) {
+                mT1.mkdir();
+            }
+            File mT2 = new File(picPath);
+            if (!mT2.exists()) {
+                mT2.mkdir();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
-    public static Bitmap getBitmapFromView(View v) {
-        Bitmap b = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.RGB_565);
-        Canvas c = new Canvas(b);
-        v.layout(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
-        // Draw background
-        Drawable bgDrawable = v.getBackground();
-        if (bgDrawable != null)
-            bgDrawable.draw(c);
-        else
-            c.drawColor(Color.WHITE);
-        // Draw view to canvas
-        v.draw(c);
-        return b;
+    /**
+     * 设置配置参数
+     */
+    private void setSPData() {
+        MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
+        CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
+        MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
+        signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
+        baseHost = SPLongUtils.getString(this, "config_base_host", "");
+        if (tv_gw!=null) tv_gw.setText(TextUtils.isEmpty(signNum)?"未设置":signNum);
+        HttpFlag.changeBaseUrl(baseHost);
     }
 }

@@ -41,13 +41,14 @@ public class SettingActivity extends Activity implements WLibHttpListener{
         MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
         CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
         MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
+        signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
+        mHost = SPLongUtils.getString(this, "config_base_host", "");
         initViews();
-        Factory.resp(this, HttpFlag.FLAG_GET_ATTENDANCE_NUM, null).post(null);
     }
 
-    private EditText et_score, et_check_time, et_face_size;
+    private EditText et_score, et_check_time, et_face_size, et_sign_num;
     private Button btn;
-    private TextView tv_sign_num, tv_host;
+    private TextView tv_host;
     private String signNum;
     private String mHost;
     private void initViews() {
@@ -58,7 +59,7 @@ public class SettingActivity extends Activity implements WLibHttpListener{
         et_score.setText(MATCH_SCORE+"");
         et_check_time.setText(MAX_ONCE_CHECK_TIME/1000 + "");
         et_face_size.setText(CHECK_SIZE+"");
-        tv_sign_num = findViewById(R.id.tv_sign_num);
+        et_sign_num = findViewById(R.id.et_sign_num);
         tv_host = findViewById(R.id.tv_host);
         btn = findViewById(R.id.btn_sure);
         btn.setOnClickListener(new View.OnClickListener() {
@@ -73,15 +74,9 @@ public class SettingActivity extends Activity implements WLibHttpListener{
                 finish();
             }
         });
-        signNum = SPLongUtils.getString(this, "config_sign_table_num", "");
-        tv_sign_num.setText(signNum);
-        tv_sign_num.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showSignDialog();
-            }
-        });
-        mHost = SPLongUtils.getString(this, "config_base_host", "");
+
+        et_sign_num.setText(signNum);
+
         tv_host.setText(mHost);
         tv_host.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,26 +88,6 @@ public class SettingActivity extends Activity implements WLibHttpListener{
     private ChooseSignDialog dialog;
     private List<String> signList = null;
     private boolean signChange = false;
-    private void showSignDialog() {
-        if (signList==null||signList.size()==0) {
-            showToast("获取签到单失败");
-        } else {
-            if (dialog==null) {
-                dialog = new ChooseSignDialog(this);
-                dialog.setCancelable(true);
-                dialog.setCallback(new ChooseSignDialog.SettingFinishedCallback() {
-                    @Override
-                    public void onSettingFinished() {
-                        signChange = true;
-                        signNum = SPLongUtils.getString(SettingActivity.this, "config_sign_table_num", "");
-                        tv_sign_num.setText(signNum);
-                    }
-                });
-            }
-            dialog.setData(signList, signNum);
-            dialog.show();
-        }
-    }
 
     private SettingHostDialog mSettingDialog;
     private void showHostDialog() {
@@ -135,6 +110,7 @@ public class SettingActivity extends Activity implements WLibHttpListener{
         String scoreStr = et_score.getText().toString();
         String timeStr = et_check_time.getText().toString();
         String sizeStr = et_face_size.getText().toString();
+        String signNum = et_sign_num.getText().toString();
         if (TextUtils.isEmpty(scoreStr) || TextUtils.isEmpty(timeStr) || TextUtils.isEmpty(sizeStr)) {
             showToast("数据不能为空");
             return;
@@ -144,10 +120,6 @@ public class SettingActivity extends Activity implements WLibHttpListener{
             int time = Integer.parseInt(timeStr);
             int size = Integer.parseInt(sizeStr);
 
-            if (score==MATCH_SCORE&&size==CHECK_SIZE&&MAX_ONCE_CHECK_TIME==(time*1000)&&!signChange) {
-                showToast("没有更改");
-                return;
-            }
             MAX_ONCE_CHECK_TIME = SPLongUtils.getInt(this, "mbad_once_check_time", 30000);
             CHECK_SIZE = SPLongUtils.getInt(this, "mbad_check_size", 80);
             MATCH_SCORE = SPLongUtils.getInt(this, "mbad_match_score", 55);
@@ -160,6 +132,7 @@ public class SettingActivity extends Activity implements WLibHttpListener{
             if (MAX_ONCE_CHECK_TIME!=(time*1000)) {
                 SPLongUtils.saveInt(this, "mbad_once_check_time", time*1000);
             }
+            SPLongUtils.saveString(this, "config_sign_table_num" ,signNum);
             showToast("修改成功");
             finish();
         } catch (Exception e){

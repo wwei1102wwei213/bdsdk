@@ -39,16 +39,23 @@ public class MyUtils {
     }
 
     public static String getStringForBitmap(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] byteArray = null;
         try {
             //第一步:将Bitmap压缩至字节数组输出流ByteArrayOutputStream
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
             //第二步:利用Base64将字节数组输出流中的数据转换成字符串String
-            byte[] byteArray = byteArrayOutputStream.toByteArray();
-            return new String(Base64.encodeToString(byteArray, Base64.DEFAULT));
+            byteArray = byteArrayOutputStream.toByteArray();
         } catch (Exception e){
 
+        } finally {
+            try {
+                byteArrayOutputStream.close();
+            } catch (Exception e){
+
+            }
         }
+        if (byteArray!=null) return Base64.encodeToString(byteArray, Base64.DEFAULT);
         return null;
     }
 

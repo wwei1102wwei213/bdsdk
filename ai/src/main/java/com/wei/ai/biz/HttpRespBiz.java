@@ -58,7 +58,6 @@ public class HttpRespBiz extends WLibDefaultHttpBiz {
             case HttpFlag.FLAG_GET_ATTENDANCE_NUM:
                 result = HttpFlag.URL_GET_ATTENDANCE_NUM;
                 break;
-
         }
         return result;
     }

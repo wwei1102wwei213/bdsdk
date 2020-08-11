@@ -9,19 +9,14 @@ import com.wei.wlib.http.WLibHttpFlag;
  */
 
 public class HttpFlag extends WLibHttpFlag {
-
     //默认API服务地址
-    public static String BASE_IMAGE_HOST = "http://39.98.221.101";
-
-    //默认API服务地址
-    public static String BASE_URL = "http://39.98.221.101/chemicalFactory/";
-
-    //人员签到
+    public static String BASE_URL = "";
+    //签到数据上报
     public static final int FLAG_INSERT_ATTENDANCE = 20;
-    public static String URL_INSERT_ATTENDANCE = BASE_URL + "android/insertAttendance";
+    public static String URL_INSERT_ATTENDANCE = BASE_URL + "send";
     //获取签到单号
     public static final int FLAG_GET_ATTENDANCE_NUM = 21;
-    public static String URL_GET_ATTENDANCE_NUM = BASE_URL + "android/getAttendanceNum";
+    public static String URL_GET_ATTENDANCE_NUM = BASE_URL + "config";
 
     //切换服务器地址
     public static void changeBaseUrl(String host) {
@@ -35,8 +30,8 @@ public class HttpFlag extends WLibHttpFlag {
                 BASE_URL = host;
             }
         }
-        URL_INSERT_ATTENDANCE = BASE_URL + "android/insertAttendance";
-        URL_GET_ATTENDANCE_NUM = BASE_URL + "android/getAttendanceNum";
+        URL_INSERT_ATTENDANCE = BASE_URL + "send";
+        URL_GET_ATTENDANCE_NUM = BASE_URL + "config";
     }
 
 }
